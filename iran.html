@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Republic of Iran — Nation File</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue@3.4.21/dist/vue.global.prod.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
@@ -64,6 +64,15 @@
         .stat-pos { background: rgba(45,106,79,0.4); color: #4ade80; }
         .stat-neg { background: rgba(139,38,38,0.4); color: #f87171; }
         .stat-neu { background: rgba(30,33,40,0.8); color: #9ca3af; }
+        .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 200; display: flex; align-items: center; justify-content: center; }
+        .modal-box { background: #16181d; border: 1px solid #cba153; max-width: 600px; width: 95%; max-height: 85vh; overflow-y: auto; }
+        .admin-badge { background: rgba(203,161,83,0.15); border: 1px solid #8a6d35; color: #cba153; font-size: 0.65rem; padding: 1px 8px; letter-spacing: 0.08em; font-family: monospace; }
+        .btn-danger { background: rgba(139,38,38,0.3); border: 1px solid #8b2626; color: #f87171; padding: 2px 8px; font-size: 0.7rem; cursor: pointer; transition: all 0.2s; }
+        .btn-danger:hover { background: rgba(139,38,38,0.6); }
+        .btn-gold { background: rgba(203,161,83,0.1); border: 1px solid #8a6d35; color: #cba153; padding: 3px 10px; font-size: 0.75rem; cursor: pointer; transition: all 0.2s; }
+        .btn-gold:hover { background: rgba(203,161,83,0.25); border-color: #cba153; }
+        .save-flash { animation: saveFlash 1.5s ease; }
+        @keyframes saveFlash { 0%{background:rgba(45,106,79,0.5)} 100%{background:transparent} }
     </style>
 </head>
 <body>
@@ -913,34 +922,48 @@
 
 <!-- ==================== TAB: MODIFIERS ==================== -->
 <div v-show="tab==='mod'" class="space-y-6">
-    <h2 class="text-3xl font-serif text-white border-b border-gray-800 pb-2">Active Modifiers</h2>
-    <div v-for="cat in nd.modifiers" :key="cat.category" class="space-y-3">
+    <div class="flex justify-between items-center border-b border-gray-800 pb-2">
+        <h2 class="text-3xl font-serif text-white">Active Modifiers</h2>
+        <button v-if="isAdmin" @click="showAddMod=true"
+            class="btn-gold text-xs uppercase tracking-wider">
+            <i class="fas fa-plus mr-1"></i> Add Modifier
+        </button>
+    </div>
+    <div v-for="(cat, catIdx) in nd.modifiers" :key="cat.category" class="space-y-3">
         <h3 class="text-gray-400 uppercase text-xs tracking-widest flex items-center gap-2">
             <i :class="cat.icon"></i> {{ cat.category }}
         </h3>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div v-for="mod in cat.mods" :key="mod.name"
+            <div v-for="(mod, modIdx) in cat.mods" :key="mod.name"
                 :class="['modifier-card panel p-5', mod.type]">
                 <div class="flex justify-between items-start mb-2">
                     <h4 class="font-serif text-white text-base">{{ mod.name }}</h4>
-                    <span :class="mod.sentiment === 'pos' ? 'stat-pos' : mod.sentiment === 'neg' ? 'stat-neg' : 'stat-neu'" class="stat-badge">{{ mod.sentiment === 'pos' ? 'Beneficial' : mod.sentiment === 'neg' ? 'Detrimental' : 'Neutral' }}</span>
+                    <div class="flex items-center gap-2">
+                        <span :class="mod.sentiment === 'pos' ? 'stat-pos' : mod.sentiment === 'neg' ? 'stat-neg' : 'stat-neu'" class="stat-badge">{{ mod.sentiment === 'pos' ? 'Beneficial' : mod.sentiment === 'neg' ? 'Detrimental' : 'Neutral' }}</span>
+                        <button v-if="isAdmin" @click="removeModifier(catIdx, modIdx)" class="btn-danger text-xs" title="Remove modifier"><i class="fas fa-times"></i></button>
+                    </div>
                 </div>
                 <p class="text-xs text-gray-500 leading-relaxed mb-3">{{ mod.desc }}</p>
-                <!-- Progress Bar if applicable -->
                 <div v-if="mod.progress !== undefined" class="mb-3">
                     <div class="flex justify-between text-xs mb-1">
                         <span class="text-gray-400">Progress</span>
-                        <span class="font-mono text-gold">{{ mod.progress }}/100</span>
+                        <span class="font-mono text-gold"><input type="number" v-model.number="mod.progress" :disabled="!isAdmin" class="admin-input w-16">/100</span>
                     </div>
                     <div class="progress-bar"><div class="progress-fill bg-gold" :style="`width:${mod.progress}%`"></div></div>
                     <p class="text-xs text-gray-600 mt-1">{{ mod.progressNote }}</p>
                 </div>
-                <!-- Effects list -->
                 <div class="space-y-1">
-                    <div v-for="e in mod.effects" :key="e.label" class="flex justify-between text-xs">
+                    <div v-for="(e, eIdx) in mod.effects" :key="e.label" class="flex justify-between items-center text-xs">
                         <span class="text-gray-400">{{ e.label }}</span>
-                        <span :class="e.positive ? 'text-green-400' : 'text-red-400'" class="font-mono">{{ e.value }}</span>
+                        <div class="flex items-center gap-2">
+                            <span :class="e.positive ? 'text-green-400' : 'text-red-400'" class="font-mono">
+                                <input v-if="isAdmin" type="text" v-model="e.value" class="admin-input w-20 text-xs" :class="e.positive?'text-green-400':'text-red-400'">
+                                <span v-else>{{ e.value }}</span>
+                            </span>
+                            <button v-if="isAdmin" @click="mod.effects.splice(eIdx,1)" class="btn-danger" style="padding:1px 4px;font-size:0.6rem" title="Remove effect"><i class="fas fa-times"></i></button>
+                        </div>
                     </div>
+                    <button v-if="isAdmin" @click="addEffect(mod)" class="btn-gold mt-2 text-xs w-full"><i class="fas fa-plus mr-1"></i>Add Effect</button>
                 </div>
             </div>
         </div>
@@ -950,329 +973,374 @@
             </div>
         </main>
     </div>
+
+    <!-- SAVE STATUS BAR -->
+    <div v-if="isAdmin" :class="['fixed bottom-4 right-4 z-40 flex items-center gap-3 px-4 py-2 border text-xs font-mono transition-all', saveStatus==='saved'?'border-green-600 bg-[#0d1a10] text-green-400':'saveStatus===\'unsaved\'?\'border-yellow-600 bg-[#1a1500] text-yellow-400\':\'border-gray-700 bg-[#12141a] text-gray-400\'']">
+        <i :class="saveStatus==='saved'?'fas fa-check-circle':saveStatus==='unsaved'?'fas fa-circle-exclamation':'fas fa-database'"></i>
+        <span>{{ saveStatus==='saved' ? 'Changes Saved' : saveStatus==='unsaved' ? 'Unsaved Changes' : 'No local data' }}</span>
+        <button @click="saveToStorage" class="btn-gold ml-2">Save</button>
+        <button @click="resetToDefault" class="btn-danger ml-1">Reset</button>
+    </div>
+
+    <!-- ADD MODIFIER MODAL -->
+    <div v-if="showAddMod && isAdmin" class="modal-bg" @click.self="showAddMod=false">
+        <div class="modal-box p-6">
+            <div class="flex justify-between items-center mb-5">
+                <h3 class="font-serif text-gold text-xl">Add New Modifier</h3>
+                <button @click="showAddMod=false" class="text-gray-500 hover:text-white"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="space-y-4 text-sm">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-gray-500 text-xs uppercase block mb-1">Category</label>
+                        <select v-model="newMod.catIdx" class="w-full bg-[#0a0b0e] border border-gray-700 text-white px-3 py-1.5 outline-none text-sm">
+                            <option v-for="(c, i) in nd.modifiers" :key="i" :value="i">{{ c.category }}</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-gray-500 text-xs uppercase block mb-1">Sentiment</label>
+                        <select v-model="newMod.sentiment" class="w-full bg-[#0a0b0e] border border-gray-700 text-white px-3 py-1.5 outline-none text-sm">
+                            <option value="pos">Beneficial</option>
+                            <option value="neu">Neutral</option>
+                            <option value="neg">Detrimental</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-gray-500 text-xs uppercase block mb-1">Type Tag</label>
+                        <select v-model="newMod.type" class="w-full bg-[#0a0b0e] border border-gray-700 text-white px-3 py-1.5 outline-none text-sm">
+                            <option value="gov">Government (purple)</option>
+                            <option value="mil">Military (red)</option>
+                            <option value="eco">Economy (green)</option>
+                            <option value="fpo">Foreign Policy (blue)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-gray-500 text-xs uppercase block mb-1">Has Progress Bar?</label>
+                        <select v-model="newMod.hasProgress" class="w-full bg-[#0a0b0e] border border-gray-700 text-white px-3 py-1.5 outline-none text-sm">
+                            <option :value="false">No</option>
+                            <option :value="true">Yes</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="text-gray-500 text-xs uppercase block mb-1">Modifier Name</label>
+                    <input v-model="newMod.name" type="text" class="w-full bg-[#0a0b0e] border border-gray-700 text-white px-3 py-1.5 outline-none text-sm" placeholder="e.g. Khuzestan Oil Boom">
+                </div>
+                <div>
+                    <label class="text-gray-500 text-xs uppercase block mb-1">Description</label>
+                    <textarea v-model="newMod.desc" rows="3" class="w-full bg-[#0a0b0e] border border-gray-700 text-white px-3 py-1.5 outline-none text-sm" placeholder="Describe the modifier's narrative and conditions..."></textarea>
+                </div>
+                <div>
+                    <label class="text-gray-500 text-xs uppercase block mb-2">Effects (Label → Value)</label>
+                    <div v-for="(e, i) in newMod.effects" :key="i" class="flex gap-2 mb-2">
+                        <input v-model="e.label" type="text" class="flex-1 bg-[#0a0b0e] border border-gray-700 text-white px-2 py-1 outline-none text-xs" placeholder="Effect label">
+                        <input v-model="e.value" type="text" class="w-24 bg-[#0a0b0e] border border-gray-700 text-white px-2 py-1 outline-none text-xs" placeholder="+5%">
+                        <select v-model="e.positive" class="bg-[#0a0b0e] border border-gray-700 text-white px-2 py-1 outline-none text-xs">
+                            <option :value="true">Positive</option>
+                            <option :value="false">Negative</option>
+                        </select>
+                        <button @click="newMod.effects.splice(i,1)" class="btn-danger"><i class="fas fa-times"></i></button>
+                    </div>
+                    <button @click="newMod.effects.push({label:'',value:'',positive:true})" class="btn-gold text-xs w-full mt-1"><i class="fas fa-plus mr-1"></i>Add Effect Row</button>
+                </div>
+                <div class="flex gap-3 pt-2 border-t border-gray-800">
+                    <button @click="confirmAddMod" class="flex-1 border border-gold text-gold py-2 text-xs uppercase tracking-wider hover:bg-gold hover:text-black transition-colors">
+                        <i class="fas fa-plus mr-1"></i> Add Modifier
+                    </button>
+                    <button @click="showAddMod=false" class="border border-gray-700 text-gray-400 py-2 px-4 text-xs hover:border-gray-500 transition-colors">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script>
-const { createApp, ref, computed, reactive, nextTick, onMounted } = Vue;
-createApp({
-    setup() {
-        const tab = ref('gov');
-        const turn = ref(1);
-        const isAdmin = ref(sessionStorage.getItem('isAdmin') === 'true');
-        let resChart = null, majlesChart = null, senateChart = null;
+const { createApp, ref, computed, reactive, nextTick, onMounted, watch } = Vue;
 
-        const nd = reactive({
-            population: 16331228,
-            baseAP: 15,
-            apModifiers: 1, // PfP +1, Vast Oil +1, Kurdistan -1 = net +1
-            politicalPower: 10,
-            ppGainPerTurn: 11,
-            money: 74580,
-            inflationRate: 0.0,
-            rip: { base: 53, traded: 0 },
-            warSupport: 50,
-            warExhaustion: 0,
-            atWar: false,
-            industrialization: 5,
+const STORAGE_KEY = 'gadb_iran_v1';
 
-            income: { taxation: 5039, trade: 0, aid: 0, modifiers: 0 },
-            spending: {
-                resourceMaint: 100639,
-                milUpkeep: 3837,
-                milEconomy: 11040,
-                govMinistries: 3758,
-                industrialUpkeep: -10206,
-                intel: 0
-            },
-
-            ic: { total: 122, assigned: 63 },
-            resources: {
-                SM:     { production: 13531, trades: 0, foreignAid: 0, modifiers: 0, consumption: 765,  maintenance: 65626 },
-                PM:     { production: 951,   trades: 0, foreignAid: 0, modifiers: 0, consumption: 604,  maintenance: 4613  },
-                IM:     { production: 1000,  trades: 0, foreignAid: 0, modifiers: 0, consumption: 1093, maintenance: 4850  },
-                AG:     { production: 3000,  trades: 0, foreignAid: 0, modifiers: 0, consumption: 776,  maintenance: 14550 },
-                Oil:    { production: 2261,  trades: 0, foreignAid: 0, modifiers: 0, consumption: 913,  maintenance: 10966 },
-                Rubber: { production: 7,     trades: 0, foreignAid: 0, modifiers: 0, consumption: 206,  maintenance: 34    }
-            },
-
-            departments: [
-                { name: 'Transportation & Labor', level: 1, max: 4, effects: '+3 PP · +6.53 RIP', inputs: 'Max 10 IC · 98 Rubber · 262 IM · 131 Oil' },
-                { name: 'Education',             level: 1, max: 4, effects: '+2 Research Points · +3.27 RIP', inputs: 'Max 10 IC · 1307 Money · 245 AG' },
-                { name: 'Civil Service',          level: 1, max: 4, effects: '+3 PP · +0.03 Tax Efficiency', inputs: 'Max 10 IC · 1144 Money · 164 AG' },
-                { name: 'Defense',               level: 1, max: 4, effects: '+0.5% Recruitable Pop · +0.03 Professionalism', inputs: 'Max 10 IC · 164 AG · 229 IM · 164 Oil' },
-                { name: 'Consumer Affairs',       level: 1, max: 4, effects: '+0.2 Base Taxation · +9.80 RIP', inputs: 'Max 10 IC · 327 SM · 196 IM' },
-                { name: 'Media Relations',        level: 1, max: 4, effects: '+0.002 War Support/Turn · +4 Electioneering', inputs: 'Max 10 IC · 1307 Money · 196 PM' },
-                { name: 'R&D Industries',         level: 1, max: 4, effects: '+12 Research Points/turn', inputs: '3 IC · 164 SM · 327 PM' },
-                { name: 'Healthcare (inactive)',  level: 0, max: 4, effects: 'Not yet funded.', inputs: '—' }
-            ],
-
-            research: {
-                points: 12,
-                slots: [
-                    { name: 'SM Improvement I', progress: 1, target: 100 },
-                    { name: 'Unassigned', progress: 0, target: 0 },
-                    { name: 'Unassigned', progress: 0, target: 0 }
-                ]
-            },
-
-            mil: {
-                recruitPercent: 0.025,
-                casualties: 0,
-                profTier: 4,
-                branches: [
-                    { name: 'Army', cap: 285797, used: 228750 },
-                    { name: 'Air Force', cap: 8166, used: 2250 },
-                    { name: 'Navy', cap: 89822, used: 66200 },
-                    { name: 'Spec. Forces', cap: 24497, used: 20000 }
-                ],
-                army: [
-                    { name: 'Infantry',        count: 200000, mp: 1 },
-                    { name: 'Irregulars',      count: 0,      mp: 1 },
-                    { name: 'Mechanized',      count: 50,     mp: 1 },
-                    { name: 'Anti-Air Squad',  count: 1500,   mp: 5 },
-                    { name: 'Anti-Tank Squad', count: 1500,   mp: 6 },
-                    { name: 'Artillery Squad', count: 1500,   mp: 6 },
-                    { name: 'MBT',             count: 0,      mp: 0 },
-                    { name: 'Pre-MBT',         count: 500,    mp: 4 },
-                    { name: 'Paratroopers',    count: 0,      mp: 1 },
-                    { name: 'Marines',         count: 0,      mp: 1 },
-                    { name: 'Mountaineers',    count: 20000,  mp: 1 },
-                    { name: 'Rocket Artillery',count: 200,    mp: 6 }
-                ],
-                theatres: [
-                    { name: 'Kurdish Border',  inf: 20000, mech: 0,  prembt: 0,  aa: 0,   at: 0,   art: 0,   mtn: 2000, rktart: 0 },
-                    { name: 'Syrian Border',   inf: 30000, mech: 50, prembt: 50, aa: 100, at: 100, art: 100, mtn: 0,    rktart: 0 },
-                    { name: 'Afghan Border',   inf: 15000, mech: 0,  prembt: 0,  aa: 0,   at: 0,   art: 0,   mtn: 1000, rktart: 0 },
-                    { name: 'Indian Border',   inf: 20000, mech: 0,  prembt: 0,  aa: 0,   at: 0,   art: 0,   mtn: 1000, rktart: 0 },
-                    { name: 'Southern Coast',  inf: 15000, mech: 0,  prembt: 0,  aa: 0,   at: 0,   art: 0,   mtn: 1000, rktart: 0 }
-                ],
-                air: [
-                    { name: 'Fighter',              count: 750, mp: 1, oil: 0.25 },
-                    { name: 'Close Air Support',    count: 750, mp: 2, oil: 0.25 },
-                    { name: 'Carrier Aircraft',     count: 0,   mp: 0, oil: 0 },
-                    { name: 'Transport Plane',      count: 0,   mp: 0, oil: 0 },
-                    { name: 'Naval Bomber',         count: 0,   mp: 0, oil: 0 },
-                    { name: 'Heavy Bomber',         count: 0,   mp: 0, oil: 0 }
-                ],
-                airTheatres: [
-                    { name: 'Western Iran', fighters: 400, cas: 200 },
-                    { name: 'Eastern Iran', fighters: 100, cas: 50  }
-                ]
-            },
-
-            navy: {
-                baseDocks: 10,
-                leasedDocks: 0,
-                usedDocks: 0,
-                fleet: [
-                    { type: 'Battleships',   count: 1,  mp: 3200 },
-                    { type: 'Fleet Carriers',count: 0,  mp: 0 },
-                    { type: 'Lt. Carriers',  count: 0,  mp: 0 },
-                    { type: 'Cruisers',      count: 15, mp: 2000 },
-                    { type: 'Screens',       count: 50, mp: 500  },
-                    { type: 'Submarines',    count: 40, mp: 200  }
-                ],
-                theatres: [
-                    { name: 'Bandar Abbas', superbattle: 0, battle: 0, carrier: 0, ltcarrier: 0, cruiser: 7, screens: 20, subs: 30 }
-                ]
-            },
-
-            intel: {
-                initialCap: 2, purchasedCap: 0, agentsActive: 0,
-                unrest: 3, unrestLevel: 1, agitation: 0,
-                maladies: [
-                    { name: 'Negative Unrest Roll',    value: 0, turns: 0 },
-                    { name: 'Negative AP',             value: 0, turns: 0 },
-                    { name: 'Negative RIP',            value: 0, turns: 0 },
-                    { name: 'Negative Tax Efficiency', value: 0, turns: 0 },
-                    { name: 'Negative Income',         value: 0, turns: 0 },
-                    { name: 'Negative Political Power',value: 0, turns: 0 },
-                    { name: 'Neg. War Exhaustion',     value: 0, turns: 0 },
-                    { name: 'Neg. War Support',        value: 0, turns: 0 }
-                ]
-            },
-
-            un: {
-                standing: 18, changePerTurn: 0, membershipFee: 0, contributions: 0,
-                secGen: 'Nasrollah Entezam',
-                organs: [
-                    { name: 'General Assembly', member: true },
-                    { name: 'Security Council', member: true },
-                    { name: 'Secretariat', member: true },
-                    { name: 'Trusteeship Council', member: true },
-                    { name: 'International Court of Justice', member: true },
-                    { name: 'ECOSOC', member: true }
-                ],
-                effects: [
-                    { label: 'Bonus AP', val: 0 },
-                    { label: 'Bonus PP', val: 2 },
-                    { label: 'Mission Participants', val: 0 },
-                    { label: 'Trust Territories', val: 0 }
-                ],
-                agencies: [
-                    { name: 'FAO', type: 'Major Specialized Agency', funded: true, prestige: 2, standingBonus: 1, effects: 'Reduces impact of famines. Once/year choose one effect for 10 PP.', programme: { name: 'Land and Cadastre Survey', progress: 0 } },
-                    { name: 'ILO', type: 'Major Specialized Agency', funded: true, prestige: 3, standingBonus: 2, effects: 'Labour standardization, manpower planning. Factions: Socialist 0.4, Liberal 0.35, Corporatist 0.25.', programme: null },
-                    { name: 'WHO', type: 'Major Specialized Agency', funded: true, prestige: 3, standingBonus: 2, effects: 'Reduces impact of disease outbreaks. Active programmes can be funded 1 AP or 10 PP/turn.', programme: { name: 'Technical Assistance', progress: 85 } },
-                    { name: 'UNESCO', type: 'Major Specialized Agency', funded: true, prestige: 4, standingBonus: 2, effects: '+5 to rolls raising literacy or initializing educational reforms.', programme: { name: 'Arid Zone Programme', progress: 5 } },
-                    { name: 'UNHCR', type: 'Principal Agency', funded: true, prestige: 0, standingBonus: 0, effects: 'Recently established — a resolution outlining its purpose must be passed before assuming operation.', programme: null },
-                    { name: 'UPU', type: 'Minor Specialized Agency', funded: true, prestige: 1, standingBonus: 1, effects: 'PP cost to upgrade Taxation Base reduced by 10%. +5 to census and bureaucratic reform rolls.', programme: null }
-                ]
-            },
-
-            modifiers: [
+const DEFAULT_ND = () => ({
+    population: 16331228,
+    baseAP: 15, apModifiers: 1,
+    politicalPower: 10, ppGainPerTurn: 11,
+    money: 74580, inflationRate: 0.0,
+    rip: { base: 53, traded: 0 },
+    warSupport: 50, warExhaustion: 0, atWar: false,
+    industrialization: 5,
+    income: { taxation: 5039, trade: 0, aid: 0, modifiers: 0 },
+    spending: { resourceMaint: 100639, milUpkeep: 3837, milEconomy: 11040, govMinistries: 3758, industrialUpkeep: -10206, intel: 0 },
+    ic: { total: 122, assigned: 63 },
+    resources: {
+        SM:     { production: 13531, trades: 0, foreignAid: 0, modifiers: 0, consumption: 765,  maintenance: 65626 },
+        PM:     { production: 951,   trades: 0, foreignAid: 0, modifiers: 0, consumption: 604,  maintenance: 4613  },
+        IM:     { production: 1000,  trades: 0, foreignAid: 0, modifiers: 0, consumption: 1093, maintenance: 4850  },
+        AG:     { production: 3000,  trades: 0, foreignAid: 0, modifiers: 0, consumption: 776,  maintenance: 14550 },
+        Oil:    { production: 2261,  trades: 0, foreignAid: 0, modifiers: 0, consumption: 913,  maintenance: 10966 },
+        Rubber: { production: 7,     trades: 0, foreignAid: 0, modifiers: 0, consumption: 206,  maintenance: 34    }
+    },
+    departments: [
+        { name: 'Transportation & Labor', level: 1, max: 4, effects: '+3 PP · +6.53 RIP', inputs: 'Max 10 IC · 98 Rubber · 262 IM · 131 Oil' },
+        { name: 'Education',              level: 1, max: 4, effects: '+2 Research Points · +3.27 RIP', inputs: 'Max 10 IC · 1307 Money · 245 AG' },
+        { name: 'Civil Service',          level: 1, max: 4, effects: '+3 PP · +0.03 Tax Efficiency', inputs: 'Max 10 IC · 1144 Money · 164 AG' },
+        { name: 'Defense',                level: 1, max: 4, effects: '+0.5% Recruitable Pop · +0.03 Professionalism', inputs: 'Max 10 IC · 164 AG · 229 IM · 164 Oil' },
+        { name: 'Consumer Affairs',       level: 1, max: 4, effects: '+0.2 Base Taxation · +9.80 RIP', inputs: 'Max 10 IC · 327 SM · 196 IM' },
+        { name: 'Media Relations',        level: 1, max: 4, effects: '+0.002 War Support/Turn · +4 Electioneering', inputs: 'Max 10 IC · 1307 Money · 196 PM' },
+        { name: 'R&D Industries',         level: 1, max: 4, effects: '+12 Research Points/turn', inputs: '3 IC · 164 SM · 327 PM' },
+        { name: 'Healthcare (inactive)',  level: 0, max: 4, effects: 'Not yet funded.', inputs: '—' }
+    ],
+    research: {
+        points: 12,
+        slots: [
+            { name: 'SM Improvement I', progress: 1, target: 100 },
+            { name: 'Unassigned', progress: 0, target: 0 },
+            { name: 'Unassigned', progress: 0, target: 0 }
+        ]
+    },
+    mil: {
+        recruitPercent: 0.025, casualties: 0, profTier: 4,
+        branches: [
+            { name: 'Army',        cap: 285797, used: 228750 },
+            { name: 'Air Force',   cap: 8166,   used: 2250   },
+            { name: 'Navy',        cap: 89822,  used: 66200  },
+            { name: 'Spec. Forces',cap: 24497,  used: 20000  }
+        ],
+        army: [
+            { name: 'Infantry',        count: 200000, mp: 1 },
+            { name: 'Irregulars',      count: 0,      mp: 1 },
+            { name: 'Mechanized',      count: 50,     mp: 1 },
+            { name: 'Anti-Air Squad',  count: 1500,   mp: 5 },
+            { name: 'Anti-Tank Squad', count: 1500,   mp: 6 },
+            { name: 'Artillery Squad', count: 1500,   mp: 6 },
+            { name: 'MBT',             count: 0,      mp: 0 },
+            { name: 'Pre-MBT',         count: 500,    mp: 4 },
+            { name: 'Paratroopers',    count: 0,      mp: 1 },
+            { name: 'Marines',         count: 0,      mp: 1 },
+            { name: 'Mountaineers',    count: 20000,  mp: 1 },
+            { name: 'Rocket Artillery',count: 200,    mp: 6 }
+        ],
+        theatres: [
+            { name: 'Kurdish Border', inf: 20000, mech: 0,  prembt: 0,  aa: 0,   at: 0,   art: 0,   mtn: 2000, rktart: 0 },
+            { name: 'Syrian Border',  inf: 30000, mech: 50, prembt: 50, aa: 100, at: 100, art: 100, mtn: 0,    rktart: 0 },
+            { name: 'Afghan Border',  inf: 15000, mech: 0,  prembt: 0,  aa: 0,   at: 0,   art: 0,   mtn: 1000, rktart: 0 },
+            { name: 'Indian Border',  inf: 20000, mech: 0,  prembt: 0,  aa: 0,   at: 0,   art: 0,   mtn: 1000, rktart: 0 },
+            { name: 'Southern Coast', inf: 15000, mech: 0,  prembt: 0,  aa: 0,   at: 0,   art: 0,   mtn: 1000, rktart: 0 }
+        ],
+        air: [
+            { name: 'Fighter',           count: 750, mp: 1, oil: 0.25 },
+            { name: 'Close Air Support', count: 750, mp: 2, oil: 0.25 },
+            { name: 'Carrier Aircraft',  count: 0,   mp: 0, oil: 0    },
+            { name: 'Transport Plane',   count: 0,   mp: 0, oil: 0    },
+            { name: 'Naval Bomber',      count: 0,   mp: 0, oil: 0    },
+            { name: 'Heavy Bomber',      count: 0,   mp: 0, oil: 0    }
+        ],
+        airTheatres: [
+            { name: 'Western Iran', fighters: 400, cas: 200 },
+            { name: 'Eastern Iran', fighters: 100, cas: 50  }
+        ]
+    },
+    navy: {
+        baseDocks: 10, leasedDocks: 0, usedDocks: 0,
+        fleet: [
+            { type: 'Battleships',    count: 1,  mp: 3200 },
+            { type: 'Fleet Carriers', count: 0,  mp: 0    },
+            { type: 'Lt. Carriers',   count: 0,  mp: 0    },
+            { type: 'Cruisers',       count: 15, mp: 2000 },
+            { type: 'Screens',        count: 50, mp: 500  },
+            { type: 'Submarines',     count: 40, mp: 200  }
+        ],
+        theatres: [
+            { name: 'Bandar Abbas', superbattle: 0, battle: 0, carrier: 0, ltcarrier: 0, cruiser: 7, screens: 20, subs: 30 }
+        ]
+    },
+    intel: {
+        initialCap: 2, purchasedCap: 0, agentsActive: 0,
+        unrest: 3, unrestLevel: 1, agitation: 0,
+        maladies: [
+            { name: 'Negative Unrest Roll',    value: 0, turns: 0 },
+            { name: 'Negative AP',             value: 0, turns: 0 },
+            { name: 'Negative RIP',            value: 0, turns: 0 },
+            { name: 'Negative Tax Efficiency', value: 0, turns: 0 },
+            { name: 'Negative Income',         value: 0, turns: 0 },
+            { name: 'Negative Political Power',value: 0, turns: 0 },
+            { name: 'Neg. War Exhaustion',     value: 0, turns: 0 },
+            { name: 'Neg. War Support',        value: 0, turns: 0 }
+        ]
+    },
+    un: {
+        standing: 18, changePerTurn: 0, membershipFee: 0, contributions: 0,
+        secGen: 'Nasrollah Entezam',
+        organs: [
+            { name: 'General Assembly', member: true },
+            { name: 'Security Council', member: true },
+            { name: 'Secretariat',      member: true },
+            { name: 'ICJ',              member: true },
+            { name: 'ECOSOC',           member: true }
+        ],
+        agencies: [
+            { name: 'SAVAK Intelligence Bureau', type: 'Intelligence', funded: true, prestige: 3, standingBonus: 2, effects: 'SAVAK gains +1 to all domestic missions and assignments.', programme: null },
+            { name: 'National Iranian Oil Company', type: 'State Enterprise', funded: true, prestige: 4, standingBonus: 3, effects: 'Increases Oil production capacity. Khuzestan oil extraction ongoing.', programme: { name: 'Khuzestan Expansion', progress: 50 } }
+        ]
+    },
+    modifiers: [
+        {
+            category: 'Government', icon: 'fas fa-landmark',
+            mods: [
                 {
-                    category: 'Government & Politics', icon: 'fas fa-landmark',
-                    mods: [
-                        {
-                            name: 'The Party for Progress', type: 'gov', sentiment: 'pos',
-                            desc: 'The only party in Iran. Centralized, one-party state. Old guard still holds great sway through Teymourtash as Party President, despite stepping back from the Presidency in 1948.',
-                            effects: [
-                                { label: 'Party Unity', value: '96 / 100', positive: true },
-                                { label: 'Unity Decay/Turn', value: '-2', positive: false },
-                                { label: 'Bonus AP', value: '+1', positive: true },
-                                { label: 'Bonus PP', value: '+5', positive: true },
-                                { label: 'Bonus Cohesion', value: '+5', positive: true }
-                            ]
-                        },
-                        {
-                            name: 'Failures in Kurdistan', type: 'gov', sentiment: 'neg',
-                            desc: 'Iran failed to end the Kurdish Republic. These failures left a rift in the party, weakening old leadership. The Kurdish population in Iran grows more vocal for autonomy.',
-                            progress: undefined,
-                            effects: [
-                                { label: 'Bonus Party Unity', value: '-2', positive: false },
-                                { label: 'Bonus AP', value: '-1', positive: false },
-                                { label: 'Gov Popularity', value: '-5', positive: false },
-                                { label: 'Unrest in Kurdistan', value: '10 (grows +2/turn)', positive: false }
-                            ]
-                        },
-                        {
-                            name: 'Islamic Traditionalism', type: 'gov', sentiment: 'neg',
-                            desc: 'The Islamic faith is a core part of the Iranian populace, fueling a movement for religious government. With defeats in Kurdistan and Iraq, this movement has grown. Passing laws against Islamic teaching spikes radicalism.',
-                            effects: [
-                                { label: 'Current Radicalization', value: '8', positive: false },
-                                { label: 'Radicalization Growth/Turn', value: '+1', positive: false }
-                            ]
-                        }
+                    name: 'Party State Autocracy', type: 'gov', sentiment: 'neu',
+                    desc: 'Iran is ruled as a single-party autocracy under the Party for Progress. Democratic processes are formally maintained but rigged in practice.',
+                    effects: [
+                        { label: 'Action Points', value: '+16 base (15+1)', positive: true },
+                        { label: 'Political Power Gain', value: '+11/turn', positive: true },
+                        { label: 'Electioneering', value: 'Rigged — automatic win', positive: true },
+                        { label: 'Press Freedom', value: 'Suppressed', positive: false }
                     ]
                 },
                 {
-                    category: 'Military & Espionage', icon: 'fas fa-shield-alt',
-                    mods: [
-                        {
-                            name: 'Republican National Guard', type: 'mil', sentiment: 'pos',
-                            desc: 'The main Iranian army, the Republican Guard defends Iran. At times of war, recruitment is greatly expanded with tribes and citizens willing to join. SAVAK provides domestic intelligence bonuses.',
-                            effects: [
-                                { label: 'Bonus Recruitable Population', value: '+0.5%', positive: true },
-                                { label: 'At War: Recruitable Pop Doubled', value: 'Yes', positive: true },
-                                { label: 'SAVAK: Spy Domestic Bonus', value: '+1 to all domestic missions', positive: true }
-                            ]
-                        },
-                        {
-                            name: 'Modernization of the Republican Guard', type: 'mil', sentiment: 'neu',
-                            desc: 'Ongoing military reform program. Army performance temporarily reduced while restructuring is underway. Upon completion, a new modifier replaces this one.',
-                            progress: 40,
-                            progressNote: 'Increases +10/turn. +10 more on successful AP action.',
-                            effects: [
-                                { label: 'Army Performance During Reform', value: '-10%', positive: false }
-                            ]
-                        },
-                        {
-                            name: 'The Strait of Hormuz', type: 'mil', sentiment: 'pos',
-                            desc: 'Iran holds a commanding position over the Strait of Hormuz, a vital trade route. Closing the straits will cause diplomatic incidents and cut off UAE oil exports. Iranian ships perform better within these waters.',
-                            effects: [
-                                { label: 'Iranian Ships (In Straits)', value: '+5% performance', positive: true },
-                                { label: 'Closing Straits: UAE Oil Cut Off', value: 'Diplomatic Incident', positive: false }
-                            ]
-                        },
-                        {
-                            name: 'Training the Javidan Guard', type: 'mil', sentiment: 'neu',
-                            desc: 'Special forces training program. Once completed, Iranian mountaineer units will be replaced by the elite Javidan Guard with superior stats.',
-                            progress: 40,
-                            progressNote: 'Increases +10/turn. +10 more on successful AP action.',
-                            effects: [
-                                { label: 'On Completion', value: 'Mountaineers replaced by Javidan Guard', positive: true }
-                            ]
-                        }
-                    ]
-                },
-                {
-                    category: 'Economy', icon: 'fas fa-chart-line',
-                    mods: [
-                        {
-                            name: 'Vast Oil Wealth', type: 'eco', sentiment: 'pos',
-                            desc: 'Iran holds vast amounts of oil wealth, now fully under Iranian companies with Russian assistance. Oil wells have enabled continued expansion of the economy. However, reliance on oil exports has economic side effects (Dutch Disease).',
-                            effects: [
-                                { label: 'Bonus AP', value: '+1', positive: true },
-                                { label: 'Cannot Import Oil', value: 'Restriction', positive: false },
-                                { label: 'Oil Maintenance Cost', value: '-25%', positive: true },
-                                { label: 'Foreign Prospecting Bonus', value: 'All nations +10 in Iran', positive: false },
-                                { label: 'Dutch Disease: Other Resource Improvements', value: '-0.15', positive: false },
-                                { label: 'Dutch Disease: Taxation Efficiency', value: '-0.15', positive: false }
-                            ]
-                        },
-                        {
-                            name: 'Khuzestani Oil Boom', type: 'eco', sentiment: 'pos',
-                            desc: 'Following the reconquest of Khuzestan, an active oil expansion program is running. Oil upgrades are enhanced, but require continuous investment each turn.',
-                            effects: [
-                                { label: 'Oil Upgrade Bonus', value: '+25%', positive: true },
-                                { label: 'Minimum Oil Upgrades/Turn Required', value: 'Yes', positive: false },
-                                { label: 'Gain Bonus RIP toward Oil', value: 'Active', positive: true }
-                            ]
-                        },
-                        {
-                            name: 'Beginning of the Iranian Industrial Boom', type: 'eco', sentiment: 'pos',
-                            desc: 'Using oil wealth, Iran is rapidly industrializing across the nation. Factory work and refining facilities are expanding. Once further conditions are met, Iran will advance to Industrialization Level 6.',
-                            progress: 50,
-                            progressNote: 'Increases +5/turn. +15 more if Iran spends X LM/IM/Oil/Money.',
-                            effects: [
-                                { label: 'Industry Upgrade Cost', value: '-10%', positive: true },
-                                { label: 'LM Upgrades', value: 'Doubled', positive: true },
-                                { label: 'Bonus RIP', value: '+10', positive: true }
-                            ]
-                        },
-                        {
-                            name: 'The Shadow of the Zagros and Alborz', type: 'eco', sentiment: 'neg',
-                            desc: 'The Pindus-like mountain ranges of Iran have proved difficult for infrastructure and transportation, though they offer great defenses and vital resources.',
-                            effects: [
-                                { label: 'Light Metals & IM Upgrades', value: '+10%', positive: true },
-                                { label: 'Transport & Labour Industry Cost', value: '+50%', positive: false },
-                                { label: 'Transport & Labour: Cannot Expand Past Lv.2', value: 'Restriction', positive: false },
-                                { label: 'Taxation Efficiency Reduction', value: '-20%', positive: false }
-                            ]
-                        }
-                    ]
-                },
-                {
-                    category: 'Foreign Policy', icon: 'fas fa-globe',
-                    mods: [
-                        {
-                            name: 'Member of the Tashkent Pact', type: 'fpo', sentiment: 'neu',
-                            desc: 'Conditional Defensive Alliance. If any member invokes this alliance, Iran is expected to aid them in their war. If Iran is attacked in Asia, Iran may invoke the alliance. Failing to aid members may incur penalties.',
-                            effects: [
-                                { label: 'Alliance Type', value: 'Conditional Defensive', positive: true },
-                                { label: 'Members', value: 'Russia, Iran, Armenia, Mongolia, Afghanistan, E.Turkestan', positive: true }
-                            ]
-                        },
-                        {
-                            name: 'Eurasian Development Fund (MCO)', type: 'fpo', sentiment: 'pos',
-                            desc: 'Each turn, Russia may choose one MCO nation (not the same twice in a row) to receive double RIP. This RIP cannot be traded. In Russia\'s stead, Poland may select if Russia is incapacitated.',
-                            effects: [
-                                { label: 'Potential Double RIP', value: 'Selected by Russia', positive: true },
-                                { label: 'RIP Tradeable', value: 'No', positive: false }
-                            ]
-                        },
-                        {
-                            name: 'Eurasian Economic Community (MCO)', type: 'fpo', sentiment: 'pos',
-                            desc: 'All MCO members receive a 5% bonus on refined resources. Once per turn, Russia can grant 5% military equipment production to one member (not same nation twice in a row).',
-                            effects: [
-                                { label: 'Refined Resource Bonus', value: '+5%', positive: true },
-                                { label: 'Potential Military Production Bonus', value: '+5% (Russia\'s choice)', positive: true }
-                            ]
-                        }
+                    name: 'SAVAK Intelligence Bureau', type: 'gov', sentiment: 'pos',
+                    desc: "Iran's state security apparatus provides internal surveillance, political control, and intelligence operations.",
+                    effects: [
+                        { label: 'Domestic Mission Bonus', value: '+1 to all', positive: true },
+                        { label: 'Unrest Suppression', value: 'Active', positive: true }
                     ]
                 }
             ]
+        },
+        {
+            category: 'Economy', icon: 'fas fa-chart-line',
+            mods: [
+                {
+                    name: 'Khuzestan Oil Boom', type: 'eco', sentiment: 'pos',
+                    desc: "The reconquest of Khuzestan and subsequent nationalization of its oil fields has dramatically increased Iran's oil production capacity.",
+                    progress: 50,
+                    progressNote: 'Increases +5/turn. +15 more if Iran spends X LM/IM/Oil/Money.',
+                    effects: [
+                        { label: 'Industry Upgrade Cost', value: '-10%', positive: true },
+                        { label: 'LM Upgrades', value: 'Doubled', positive: true },
+                        { label: 'Bonus RIP', value: '+10', positive: true }
+                    ]
+                },
+                {
+                    name: 'The Shadow of the Zagros and Alborz', type: 'eco', sentiment: 'neg',
+                    desc: 'The mountain ranges of Iran have proved difficult for infrastructure and transportation, though they offer great defenses and vital resources.',
+                    effects: [
+                        { label: 'Light Metals & IM Upgrades', value: '+10%', positive: true },
+                        { label: 'Transport & Labour Industry Cost', value: '+50%', positive: false },
+                        { label: 'Transport & Labour: Cannot Expand Past Lv.2', value: 'Restriction', positive: false },
+                        { label: 'Taxation Efficiency Reduction', value: '-20%', positive: false }
+                    ]
+                }
+            ]
+        },
+        {
+            category: 'Foreign Policy', icon: 'fas fa-globe',
+            mods: [
+                {
+                    name: 'Member of the Tashkent Pact', type: 'fpo', sentiment: 'neu',
+                    desc: 'Conditional Defensive Alliance. If any member invokes this alliance, Iran is expected to aid them in their war.',
+                    effects: [
+                        { label: 'Alliance Type', value: 'Conditional Defensive', positive: true },
+                        { label: 'Members', value: 'Russia, Iran, Armenia, Mongolia, Afghanistan, E.Turkestan', positive: true }
+                    ]
+                },
+                {
+                    name: 'Eurasian Development Fund (MCO)', type: 'fpo', sentiment: 'pos',
+                    desc: 'Each turn, Russia may choose one MCO nation (not the same twice in a row) to receive double RIP. This RIP cannot be traded.',
+                    effects: [
+                        { label: 'Potential Double RIP', value: 'Selected by Russia', positive: true },
+                        { label: 'RIP Tradeable', value: 'No', positive: false }
+                    ]
+                },
+                {
+                    name: 'Eurasian Economic Community (MCO)', type: 'fpo', sentiment: 'pos',
+                    desc: 'All MCO members receive a 5% bonus on refined resources. Once per turn, Russia can grant 5% military equipment production to one member.',
+                    effects: [
+                        { label: 'Refined Resource Bonus', value: '+5%', positive: true },
+                        { label: 'Potential Military Production Bonus', value: "+5% (Russia's choice)", positive: true }
+                    ]
+                }
+            ]
+        }
+    ]
+});
+
+createApp({
+    setup() {
+        const tab = ref('gov');
+        const turn = ref(parseInt(localStorage.getItem('gadb_turn_iran') || '1'));
+        const isAdmin = ref(sessionStorage.getItem('isAdmin') === 'true');
+        const showAddMod = ref(false);
+        const saveStatus = ref('none');
+        let resChart = null, majlesChart = null, senateChart = null;
+        let saveTimeout = null;
+
+        // Load saved or use defaults
+        const loadState = () => {
+            try {
+                const s = localStorage.getItem(STORAGE_KEY);
+                if (s) { saveStatus.value = 'saved'; return JSON.parse(s); }
+            } catch(e) {}
+            return DEFAULT_ND();
+        };
+
+        const nd = reactive(loadState());
+
+        const saveToStorage = () => {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(nd));
+                localStorage.setItem('gadb_turn_iran', String(turn.value));
+                saveStatus.value = 'saved';
+            } catch(e) { console.warn('Save failed:', e); }
+        };
+
+        const resetToDefault = () => {
+            if (!confirm('Reset all Iran data to factory defaults? This cannot be undone.')) return;
+            localStorage.removeItem(STORAGE_KEY);
+            localStorage.removeItem('gadb_turn_iran');
+            const fresh = DEFAULT_ND();
+            Object.assign(nd, fresh);
+            turn.value = 1;
+            saveStatus.value = 'none';
+        };
+
+        watch(nd, () => {
+            if (!isAdmin.value) return;
+            saveStatus.value = 'unsaved';
+            clearTimeout(saveTimeout);
+            saveTimeout = setTimeout(saveToStorage, 2000);
+        }, { deep: true });
+
+        watch(turn, () => {
+            if (isAdmin.value) localStorage.setItem('gadb_turn_iran', String(turn.value));
         });
+
+        const newMod = reactive({
+            catIdx: 0, name: '', desc: '', type: 'gov', sentiment: 'neu',
+            hasProgress: false, effects: [{ label: '', value: '', positive: true }]
+        });
+
+        const removeModifier = (catIdx, modIdx) => {
+            if (!confirm('Remove this modifier?')) return;
+            nd.modifiers[catIdx].mods.splice(modIdx, 1);
+        };
+
+        const addEffect = (mod) => { mod.effects.push({ label: '', value: '', positive: true }); };
+
+        const confirmAddMod = () => {
+            if (!newMod.name.trim()) { alert('Modifier needs a name.'); return; }
+            const modObj = {
+                name: newMod.name, type: newMod.type, sentiment: newMod.sentiment,
+                desc: newMod.desc,
+                effects: JSON.parse(JSON.stringify(newMod.effects)).filter(e => e.label)
+            };
+            if (newMod.hasProgress) { modObj.progress = 0; modObj.progressNote = 'Progress increases each turn.'; }
+            nd.modifiers[newMod.catIdx].mods.push(modObj);
+            Object.assign(newMod, { catIdx: 0, name: '', desc: '', type: 'gov', sentiment: 'neu', hasProgress: false, effects: [{ label: '', value: '', positive: true }] });
+            showAddMod.value = false;
+        };
 
         const resKeys = ['SM','PM','IM','AG','Oil','Rubber'];
         const totalAP = computed(() => nd.baseAP + nd.apModifiers);
@@ -1288,6 +1356,7 @@ createApp({
         const totalSpending = computed(() => nd.spending.resourceMaint + nd.spending.milUpkeep + nd.spending.milEconomy + nd.spending.govMinistries + nd.spending.industrialUpkeep + nd.spending.intel);
         const netIncome = computed(() => totalIncome.value - totalSpending.value);
         const moneyNextTurn = computed(() => nd.money + netIncome.value);
+
         const resBal = (r) => {
             const re = nd.resources[r];
             return (re.production + re.trades + re.foreignAid + re.modifiers) - re.consumption;
@@ -1302,16 +1371,12 @@ createApp({
                 if (!el) return null;
                 return new Chart(el, {
                     type: 'doughnut',
-                    data: {
-                        labels: ['Party for Progress','Other'],
-                        datasets: [{ data: [seated, total - seated], backgroundColor: ['#cba153','#1e2128'], borderColor: '#0a0b0e', borderWidth: 2 }]
-                    },
+                    data: { labels: ['Party for Progress','Other'], datasets: [{ data: [seated, total - seated], backgroundColor: ['#cba153','#1e2128'], borderColor: '#0a0b0e', borderWidth: 2 }] },
                     options: { responsive: true, maintainAspectRatio: false, circumference: 180, rotation: -90, cutout: '60%', plugins: { legend: { display: false } } }
                 });
             };
             majlesChart = mkDoughnut('majlesChart', 180, 180);
             senateChart = mkDoughnut('senateChart', 70, 78);
-
             const rc = document.getElementById('resourceChart');
             if (rc && !resChart) {
                 resChart = new Chart(rc, {
@@ -1334,21 +1399,23 @@ createApp({
 
         const processTurn = () => {
             if (!isAdmin.value) return;
+            if (!confirm(`Advance to Turn ${turn.value + 1}? Money and PP will be updated.`)) return;
             turn.value++;
-            nd.money += totalIncome.value - totalSpending.value;
+            nd.money = Math.round(nd.money + netIncome.value);
             nd.politicalPower = Math.min(1000, nd.politicalPower + nd.ppGainPerTurn);
             nd.warExhaustion = Math.max(0, nd.warExhaustion);
+            nd.research.slots.forEach(s => { if (s.target > 0) s.progress = Math.min(s.target, s.progress + nd.research.points); });
+            saveToStorage();
         };
 
-        onMounted(() => {
-            nextTick(() => initCharts());
-        });
+        onMounted(() => { nextTick(() => initCharts()); });
 
         return {
-            tab, turn, isAdmin, nd, resKeys,
+            tab, turn, isAdmin, nd, resKeys, showAddMod, newMod, saveStatus,
             totalAP, unassignedIC, totalRecruitable, armyTotal, armyMPTotal, airTotal,
             navalTotal, unusedDocks, totalManpowerUsed, totalIncome, totalSpending,
-            netIncome, moneyNextTurn, resBal, formatNum, processTurn
+            netIncome, moneyNextTurn, resBal, formatNum, processTurn,
+            saveToStorage, resetToDefault, removeModifier, addEffect, confirmAddMod
         };
     }
 }).mount('#app');
