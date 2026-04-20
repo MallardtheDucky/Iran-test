@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Global Assembly — International Geo-Political Database</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue@3.4.21/dist/vue.global.prod.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
@@ -115,8 +115,13 @@
                     </button>
                 </div>
                 <div v-else class="flex items-center gap-2 text-green-400 text-xs">
-                    <i class="fas fa-unlock"></i> Admin Active —
-                    <button @click="logout" class="text-gray-400 hover:text-red-400 ml-1 underline">Logout</button>
+                    <i class="fas fa-unlock"></i> Admin Active
+                    <span class="text-gray-600">|</span>
+                    <button @click="showAdminPanel=!showAdminPanel" class="text-gold hover:text-yellow-300 underline">
+                        <i class="fas fa-cog mr-1"></i>Panel
+                    </button>
+                    <span class="text-gray-600">|</span>
+                    <button @click="logout" class="text-gray-400 hover:text-red-400 underline">Logout</button>
                 </div>
                 <p v-if="loginError" class="text-red-500 text-xs"><i class="fas fa-exclamation-triangle"></i> Unrecognized credentials.</p>
             </div>
@@ -264,7 +269,7 @@
                             <span class="font-mono text-gray-600">{{ nations.filter(n=>!n.active).length }}</span>
                         </div>
                         <div v-if="isAdmin" class="pt-2">
-                            <button @click="turn++" class="w-full border border-gold text-gold py-2 text-xs uppercase tracking-wider hover:bg-gold hover:text-black transition-colors">
+                            <button @click="advanceTurn" class="w-full border border-gold text-gold py-2 text-xs uppercase tracking-wider hover:bg-gold hover:text-black transition-colors">
                                 <i class="fas fa-forward mr-2"></i> Advance Turn
                             </button>
                         </div>
@@ -275,6 +280,82 @@
         </div>
     </main>
 
+    <!-- ADMIN PANEL MODAL -->
+    <div v-if="showAdminPanel && isAdmin" class="fixed inset-0 bg-black bg-opacity-80 z-50 flex items-center justify-center" @click.self="showAdminPanel=false">
+        <div class="bg-[#16181d] border border-[#cba153] w-full max-w-lg max-h-[85vh] overflow-y-auto">
+            <div class="flex justify-between items-center px-6 py-4 border-b border-gray-800">
+                <h2 class="font-serif text-gold text-xl"><i class="fas fa-shield-alt mr-2"></i>Admin Control Panel</h2>
+                <button @click="showAdminPanel=false" class="text-gray-500 hover:text-white"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="p-6 space-y-6 text-sm">
+
+                <!-- Turn Control -->
+                <div>
+                    <h3 class="text-gold uppercase text-xs tracking-widest mb-3">Global Turn Control</h3>
+                    <div class="bg-[#0a0b0e] border border-gray-800 p-4 flex items-center justify-between">
+                        <span class="text-gray-400">Current Turn</span>
+                        <div class="flex items-center gap-3">
+                            <button @click="if(turn>1)turn--" class="border border-gray-700 text-gray-400 px-3 py-1 text-xs hover:border-gold hover:text-gold transition-colors"><i class="fas fa-backward"></i></button>
+                            <span class="font-mono text-white text-xl w-10 text-center">{{ turn }}</span>
+                            <button @click="advanceTurn" class="border border-gold text-gold px-3 py-1 text-xs hover:bg-gold hover:text-black transition-colors"><i class="fas fa-forward"></i></button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Admin Email Management -->
+                <div>
+                    <h3 class="text-gold uppercase text-xs tracking-widest mb-3">Admin Access List</h3>
+                    <div class="space-y-2">
+                        <div v-for="email in allAdminEmails" :key="email"
+                            class="flex justify-between items-center bg-[#0a0b0e] border border-gray-800 px-3 py-2">
+                            <div class="flex items-center gap-2">
+                                <i class="fas fa-user-shield text-gold text-xs"></i>
+                                <span class="font-mono text-xs text-gray-300">{{ email }}</span>
+                                <span v-if="['hanssantos11@gmail.com'].includes(email)" class="text-xs text-gold bg-[#1a1400] border border-[#8a6d35] px-1.5 py-0.5 font-mono">SUPERADMIN</span>
+                            </div>
+                            <button v-if="!['hanssantos11@gmail.com'].includes(email)"
+                                @click="removeAdminEmail(email)"
+                                class="text-red-600 hover:text-red-400 text-xs transition-colors" title="Revoke access">
+                                <i class="fas fa-user-minus"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="mt-3 flex gap-2">
+                        <input v-model="newAdminEmail" @keyup.enter="addAdminEmail" type="email"
+                            class="flex-1 bg-[#0a0b0e] border border-gray-700 px-3 py-1.5 text-white outline-none text-xs focus:border-gold"
+                            placeholder="new.admin@example.com">
+                        <button @click="addAdminEmail"
+                            class="border border-gold text-gold px-4 py-1.5 text-xs uppercase tracking-wider hover:bg-gold hover:text-black transition-colors">
+                            <i class="fas fa-plus mr-1"></i>Grant
+                        </button>
+                    </div>
+                    <p class="text-xs text-gray-600 mt-2"><i class="fas fa-info-circle mr-1"></i>Superadmin emails can only be changed in the source code (GitHub).</p>
+                </div>
+
+                <!-- Quick Links -->
+                <div>
+                    <h3 class="text-gold uppercase text-xs tracking-widest mb-3">Nation Files</h3>
+                    <div class="space-y-2">
+                        <a href="iran.html" class="flex items-center justify-between bg-[#0a0b0e] border border-gray-800 px-3 py-2 hover:border-gold transition-colors group">
+                            <div class="flex items-center gap-2">
+                                <div class="w-4 h-3 flex flex-col overflow-hidden"><div class="flex-1" style="background:#2d9e4e"></div><div class="flex-1 bg-white"></div><div class="flex-1" style="background:#da0000"></div></div>
+                                <span class="text-xs text-gray-300 group-hover:text-gold transition-colors">Republic of Iran</span>
+                            </div>
+                            <i class="fas fa-external-link-alt text-gray-600 group-hover:text-gold text-xs transition-colors"></i>
+                        </a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<style>
+    .modal-overlay { backdrop-filter: blur(2px); }
+</style>
+
     <!-- FOOTER -->
     <footer class="border-t border-[#2a2d35] py-4 px-8 text-xs text-gray-600 flex justify-between relative z-10">
         <span>Global Assembly — International Geo-Political Database</span>
@@ -284,25 +365,37 @@
 
 <script>
 const { createApp, ref, computed, reactive } = Vue;
+
+const ADMIN_EMAILS_KEY = 'gadb_admin_emails';
+const TURN_KEY = 'gadb_global_turn';
+
+// Default hardcoded superadmin emails (always allowed, editing these requires GitHub access)
+const SUPERADMIN_EMAILS = ['hanssantos11@gmail.com'];
+
 createApp({
     setup() {
-        const turn = ref(1);
+        // Load saved emails from localStorage (extras added by superadmins)
+        const loadEmails = () => {
+            try {
+                const saved = localStorage.getItem(ADMIN_EMAILS_KEY);
+                return saved ? JSON.parse(saved) : [];
+            } catch(e) { return []; }
+        };
+
+        const turn = ref(parseInt(localStorage.getItem(TURN_KEY) || '1'));
         const loginEmail = ref('');
         const loginError = ref(false);
         const isAdmin = ref(sessionStorage.getItem('isAdmin') === 'true');
+        const isSuperAdmin = ref(sessionStorage.getItem('isSuperAdmin') === 'true');
         const activeFilter = ref('All');
+        const showAdminPanel = ref(false);
+        const newAdminEmail = ref('');
+        const extraAdminEmails = ref(loadEmails());
 
         const filters = ['All', 'Eastern Bloc', 'Western Bloc', 'Non-Aligned'];
 
         const nations = reactive([
-            {
-                id: 'iran', name: 'Republic of Iran', active: true,
-                govType: 'Party State Autocracy',
-                leader: 'Abdollah Entezam', capital: 'Tehran',
-                bloc: 'Eastern Bloc', blocColor: '#ef4444',
-                popDisplay: '16.3M', ic: 122, unStanding: 18,
-                file: 'iran.html'
-            },
+            { id: 'iran', name: 'Republic of Iran', active: true, govType: 'Party State Autocracy', leader: 'Abdollah Entezam', capital: 'Tehran', bloc: 'Eastern Bloc', blocColor: '#ef4444', popDisplay: '16.3M', ic: 122, unStanding: 18, file: 'iran.html' },
             { id: 'rumburg', name: 'Kingdom of Rumburg', active: false, govType: 'Classified', leader: '—', capital: '—', bloc: 'Unknown', blocColor: '#4b5563', popDisplay: '—', ic: '—', unStanding: '—', file: null },
             { id: 'russia', name: 'Russian National State', active: false, govType: 'Classified', leader: '—', capital: '—', bloc: 'Eastern Bloc', blocColor: '#ef4444', popDisplay: '—', ic: '—', unStanding: '—', file: null },
             { id: 'germany', name: 'German Federal State', active: false, govType: 'Classified', leader: '—', capital: '—', bloc: 'Unknown', blocColor: '#4b5563', popDisplay: '—', ic: '—', unStanding: '—', file: null },
@@ -315,33 +408,69 @@ createApp({
             return nations.filter(n => n.bloc === activeFilter.value || !n.active);
         });
 
+        const allAdminEmails = computed(() => [...SUPERADMIN_EMAILS, ...extraAdminEmails.value]);
+
         const attemptLogin = () => {
             const email = loginEmail.value.toLowerCase().trim();
-            const allowed = ['hanssantos11@gmail.com'];
-            if (allowed.includes(email) || email.includes('admin')) {
+            if (!email) return;
+            const isSA = SUPERADMIN_EMAILS.includes(email);
+            const isAny = isSA || extraAdminEmails.value.includes(email);
+            if (isAny) {
                 isAdmin.value = true;
+                isSuperAdmin.value = isSA;
                 loginError.value = false;
                 sessionStorage.setItem('isAdmin', 'true');
+                sessionStorage.setItem('isSuperAdmin', isSA ? 'true' : 'false');
+                sessionStorage.setItem('adminEmail', email);
             } else {
                 isAdmin.value = false;
+                isSuperAdmin.value = false;
                 loginError.value = true;
                 sessionStorage.removeItem('isAdmin');
+                sessionStorage.removeItem('isSuperAdmin');
             }
         };
 
         const logout = () => {
             isAdmin.value = false;
+            isSuperAdmin.value = false;
             loginEmail.value = '';
+            showAdminPanel.value = false;
             sessionStorage.removeItem('isAdmin');
+            sessionStorage.removeItem('isSuperAdmin');
+            sessionStorage.removeItem('adminEmail');
+        };
+
+        const addAdminEmail = () => {
+            const email = newAdminEmail.value.toLowerCase().trim();
+            if (!email || !email.includes('@')) return alert('Enter a valid email.');
+            if (allAdminEmails.value.includes(email)) return alert('Email already has admin access.');
+            extraAdminEmails.value.push(email);
+            localStorage.setItem(ADMIN_EMAILS_KEY, JSON.stringify(extraAdminEmails.value));
+            newAdminEmail.value = '';
+        };
+
+        const removeAdminEmail = (email) => {
+            if (SUPERADMIN_EMAILS.includes(email)) return alert('Cannot remove superadmin emails. Edit the source code to do so.');
+            extraAdminEmails.value = extraAdminEmails.value.filter(e => e !== email);
+            localStorage.setItem(ADMIN_EMAILS_KEY, JSON.stringify(extraAdminEmails.value));
+        };
+
+        const advanceTurn = () => {
+            turn.value++;
+            localStorage.setItem(TURN_KEY, String(turn.value));
         };
 
         const openNation = (nation) => {
-            if (nation.file) {
-                window.location.href = nation.file;
-            }
+            if (nation.file) window.location.href = nation.file;
         };
 
-        return { turn, loginEmail, loginError, isAdmin, activeFilter, filters, nations, filteredNations, attemptLogin, logout, openNation };
+        return {
+            turn, loginEmail, loginError, isAdmin, isSuperAdmin, activeFilter, filters,
+            nations, filteredNations, allAdminEmails, extraAdminEmails,
+            showAdminPanel, newAdminEmail,
+            attemptLogin, logout, addAdminEmail, removeAdminEmail, advanceTurn, openNation
+        };
     }
 }).mount('#app');
 </script>
