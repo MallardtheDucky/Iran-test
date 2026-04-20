@@ -239,14 +239,14 @@
                     <div>
                         <div class="flex justify-between text-xs mb-1">
                             <span class="text-gray-400">War Support</span>
-                            <span class="font-mono text-blue-400"><input type="number" v-model="nd.warSupport" :disabled="!isAdmin" class="admin-input w-12 text-blue-400">%</span>
+                            <span class="font-mono text-blue-400"><input type="number" v-model.number="nd.warSupport" :disabled="!isAdmin" class="admin-input w-12 text-blue-400">%</span>
                         </div>
                         <div class="progress-bar"><div class="progress-fill bg-blue-500" :style="`width:${nd.warSupport}%`"></div></div>
                     </div>
                     <div>
                         <div class="flex justify-between text-xs mb-1">
                             <span class="text-gray-400">War Exhaustion</span>
-                            <span class="font-mono text-red-400"><input type="number" v-model="nd.warExhaustion" :disabled="!isAdmin" class="admin-input w-12 text-red-400">%</span>
+                            <span class="font-mono text-red-400"><input type="number" v-model.number="nd.warExhaustion" :disabled="!isAdmin" class="admin-input w-12 text-red-400">%</span>
                         </div>
                         <div class="progress-bar"><div class="progress-fill bg-red-600" :style="`width:${nd.warExhaustion}%`"></div></div>
                     </div>
@@ -360,11 +360,11 @@
             <div class="grid grid-cols-3 gap-3 text-center">
                 <div class="bg-[#0a0b0e] p-3 border border-gray-800">
                     <p class="text-xs text-gray-500 mb-1">Total IC</p>
-                    <p class="text-2xl font-mono text-white"><input type="number" v-model="nd.ic.total" :disabled="!isAdmin" class="admin-input text-center text-2xl w-16"></p>
+                    <p class="text-2xl font-mono text-white"><input type="number" v-model.number="nd.ic.total" :disabled="!isAdmin" class="admin-input text-center text-2xl w-16"></p>
                 </div>
                 <div class="bg-[#0a0b0e] p-3 border border-gray-800">
                     <p class="text-xs text-gray-500 mb-1">Assigned IC</p>
-                    <p class="text-2xl font-mono text-yellow-500"><input type="number" v-model="nd.ic.assigned" :disabled="!isAdmin" class="admin-input text-center text-2xl w-16 text-yellow-500"></p>
+                    <p class="text-2xl font-mono text-yellow-500"><input type="number" v-model.number="nd.ic.assigned" :disabled="!isAdmin" class="admin-input text-center text-2xl w-16 text-yellow-500"></p>
                 </div>
                 <div class="bg-[#0a0b0e] p-3 border border-gray-800">
                     <p class="text-xs text-gray-500 mb-1">Unassigned</p>
@@ -390,7 +390,7 @@
                 <div class="space-y-2">
                     <p class="text-gray-400 text-xs uppercase tracking-wider mb-2">Political Power</p>
                     <p class="flex justify-between"><span class="text-gray-500">Gain/Turn</span><span class="font-mono text-purple-400">+{{ nd.ppGainPerTurn }}</span></p>
-                    <p class="flex justify-between"><span class="text-gray-500">Current</span><span class="font-mono text-purple-400"><input type="number" v-model="nd.politicalPower" :disabled="!isAdmin" class="admin-input w-12 text-purple-400"></span></p>
+                    <p class="flex justify-between"><span class="text-gray-500">Current</span><span class="font-mono text-purple-400"><input type="number" v-model.number="nd.politicalPower" :disabled="!isAdmin" class="admin-input w-12 text-purple-400"></span></p>
                     <p class="flex justify-between"><span class="text-gray-500">Maximum</span><span class="font-mono text-gray-400">1000</span></p>
                 </div>
             </div>
@@ -403,9 +403,9 @@
             <div class="p-4 bg-[#12141a] border-b border-gray-800"><h3 class="text-gold uppercase text-xs tracking-widest">Income Sources</h3></div>
             <table class="w-full text-sm">
                 <tbody class="divide-y divide-gray-800 font-mono">
-                    <tr class="hover:bg-[#1a1c23]"><td class="p-3 text-gray-400">Taxation</td><td class="p-3 text-right text-green-400"><input type="number" v-model="nd.income.taxation" :disabled="!isAdmin" class="admin-input w-20 text-green-400"></td></tr>
-                    <tr class="hover:bg-[#1a1c23]"><td class="p-3 text-gray-400">Trade</td><td class="p-3 text-right text-green-400"><input type="number" v-model="nd.income.trade" :disabled="!isAdmin" class="admin-input w-20 text-green-400"></td></tr>
-                    <tr class="hover:bg-[#1a1c23]"><td class="p-3 text-gray-400">Foreign Aid</td><td class="p-3 text-right text-green-400"><input type="number" v-model="nd.income.aid" :disabled="!isAdmin" class="admin-input w-20 text-green-400"></td></tr>
+                    <tr class="hover:bg-[#1a1c23]"><td class="p-3 text-gray-400">Taxation</td><td class="p-3 text-right text-green-400"><input type="number" v-model.number="nd.income.taxation" :disabled="!isAdmin" class="admin-input w-20 text-green-400"></td></tr>
+                    <tr class="hover:bg-[#1a1c23]"><td class="p-3 text-gray-400">Trade</td><td class="p-3 text-right text-green-400"><input type="number" v-model.number="nd.income.trade" :disabled="!isAdmin" class="admin-input w-20 text-green-400"></td></tr>
+                    <tr class="hover:bg-[#1a1c23]"><td class="p-3 text-gray-400">Foreign Aid</td><td class="p-3 text-right text-green-400"><input type="number" v-model.number="nd.income.aid" :disabled="!isAdmin" class="admin-input w-20 text-green-400"></td></tr>
                     <tr class="hover:bg-[#1a1c23]"><td class="p-3 text-gray-400">From Modifiers</td><td class="p-3 text-right text-green-400">{{ nd.income.modifiers }}</td></tr>
                     <tr class="bg-[#12141a] font-bold"><td class="p-3 text-white">Total Income</td><td class="p-3 text-right text-green-400">${{ formatNum(totalIncome) }}</td></tr>
                 </tbody>
@@ -566,7 +566,7 @@
                 <span class="text-gray-500">Used: {{ formatNum(totalManpowerUsed) }}</span>
                 <span class="text-gray-500">{{ (totalManpowerUsed/totalRecruitable*100).toFixed(1) }}%</span>
             </div>
-            <p class="text-xs text-gray-500 mt-2">Casualties: <span class="font-mono text-red-400"><input type="number" v-model="nd.mil.casualties" :disabled="!isAdmin" class="admin-input w-16 text-red-400"></span></p>
+            <p class="text-xs text-gray-500 mt-2">Casualties: <span class="font-mono text-red-400"><input type="number" v-model.number="nd.mil.casualties" :disabled="!isAdmin" class="admin-input w-16 text-red-400"></span></p>
         </div>
         <div class="panel p-5">
             <h3 class="text-gold uppercase text-xs tracking-widest mb-3">Military Professionalism</h3>
@@ -688,7 +688,7 @@
             <div class="space-y-3">
                 <div class="flex justify-between items-center border-b border-gray-800 pb-2">
                     <span class="text-gray-400 text-sm">Base Dockyards</span>
-                    <span class="font-mono text-white text-xl"><input type="number" v-model="nd.navy.baseDocks" :disabled="!isAdmin" class="admin-input w-14"></span>
+                    <span class="font-mono text-white text-xl"><input type="number" v-model.number="nd.navy.baseDocks" :disabled="!isAdmin" class="admin-input w-14"></span>
                 </div>
                 <div class="flex justify-between items-center border-b border-gray-800 pb-2">
                     <span class="text-gray-400 text-sm">Leased Dockyards</span>
@@ -696,7 +696,7 @@
                 </div>
                 <div class="flex justify-between items-center border-b border-gray-800 pb-2">
                     <span class="text-gray-400 text-sm">Used Dockyards</span>
-                    <span class="font-mono text-yellow-500 text-xl"><input type="number" v-model="nd.navy.usedDocks" :disabled="!isAdmin" class="admin-input w-14 text-yellow-500"></span>
+                    <span class="font-mono text-yellow-500 text-xl"><input type="number" v-model.number="nd.navy.usedDocks" :disabled="!isAdmin" class="admin-input w-14 text-yellow-500"></span>
                 </div>
                 <div class="flex justify-between items-center">
                     <span class="text-gray-400 text-sm">Unused Dockyards</span>
@@ -772,7 +772,7 @@
                     <p class="flex justify-between border-b border-gray-800 pb-1"><span class="text-gray-500">Initial Agent Cap.</span><span class="font-mono text-white">{{ nd.intel.initialCap }}</span></p>
                     <p class="flex justify-between border-b border-gray-800 pb-1"><span class="text-gray-500">Purchased Cap.</span><span class="font-mono text-white">{{ nd.intel.purchasedCap }}</span></p>
                     <p class="flex justify-between border-b border-gray-800 pb-1"><span class="text-gray-500">Total Capacity</span><span class="font-mono text-gold">{{ nd.intel.initialCap + nd.intel.purchasedCap }}</span></p>
-                    <p class="flex justify-between"><span class="text-gray-500">Agents Active</span><span class="font-mono text-white"><input type="number" v-model="nd.intel.agentsActive" :disabled="!isAdmin" class="admin-input w-12"></span></p>
+                    <p class="flex justify-between"><span class="text-gray-500">Agents Active</span><span class="font-mono text-white"><input type="number" v-model.number="nd.intel.agentsActive" :disabled="!isAdmin" class="admin-input w-12"></span></p>
                 </div>
                 <div class="space-y-2">
                     <p class="flex justify-between border-b border-gray-800 pb-1"><span class="text-gray-500">AP Upkeep</span><span class="font-mono text-red-400">{{ nd.intel.agentsActive }}</span></p>
@@ -790,7 +790,7 @@
                 <div>
                     <div class="flex justify-between text-sm mb-1">
                         <span class="text-gray-400">National Unrest</span>
-                        <span class="font-mono text-red-400"><input type="number" v-model="nd.intel.unrest" :disabled="!isAdmin" class="admin-input w-12 text-red-400"> (Level {{ nd.intel.unrestLevel }})</span>
+                        <span class="font-mono text-red-400"><input type="number" v-model.number="nd.intel.unrest" :disabled="!isAdmin" class="admin-input w-12 text-red-400"> (Level {{ nd.intel.unrestLevel }})</span>
                     </div>
                     <div class="progress-bar"><div class="progress-fill bg-red-600" :style="`width:${nd.intel.unrest*10}%`"></div></div>
                     <p class="text-xs text-gray-600 mt-1">Agitations per turn at this level: 0</p>
@@ -798,7 +798,7 @@
                 <div>
                     <div class="flex justify-between text-sm mb-1">
                         <span class="text-gray-400">Agitation Level</span>
-                        <span class="font-mono text-yellow-400"><input type="number" v-model="nd.intel.agitation" :disabled="!isAdmin" class="admin-input w-12 text-yellow-400"></span>
+                        <span class="font-mono text-yellow-400"><input type="number" v-model.number="nd.intel.agitation" :disabled="!isAdmin" class="admin-input w-12 text-yellow-400"></span>
                     </div>
                     <div class="progress-bar"><div class="progress-fill bg-yellow-500" :style="`width:${nd.intel.agitation}%`"></div></div>
                     <p class="text-xs text-gray-600 mt-1">Agitation Penalty: None</p>
@@ -975,7 +975,7 @@
     </div>
 
     <!-- SAVE STATUS BAR -->
-    <div v-if="isAdmin" :class="['fixed bottom-4 right-4 z-40 flex items-center gap-3 px-4 py-2 border text-xs font-mono transition-all', saveStatus==='saved'?'border-green-600 bg-[#0d1a10] text-green-400':'saveStatus===\'unsaved\'?\'border-yellow-600 bg-[#1a1500] text-yellow-400\':\'border-gray-700 bg-[#12141a] text-gray-400\'']">
+    <div v-if="isAdmin" :class="['fixed bottom-4 right-4 z-40 flex items-center gap-3 px-4 py-2 border text-xs font-mono transition-all', saveStatus === 'saved' ? 'border-green-600 bg-[#0d1a10] text-green-400' : saveStatus === 'unsaved' ? 'border-yellow-600 bg-[#1a1500] text-yellow-400' : 'border-gray-700 bg-[#12141a] text-gray-400']">
         <i :class="saveStatus==='saved'?'fas fa-check-circle':saveStatus==='unsaved'?'fas fa-circle-exclamation':'fas fa-database'"></i>
         <span>{{ saveStatus==='saved' ? 'Changes Saved' : saveStatus==='unsaved' ? 'Unsaved Changes' : 'No local data' }}</span>
         <button @click="saveToStorage" class="btn-gold ml-2">Save</button>
@@ -1062,6 +1062,7 @@
 const { createApp, ref, computed, reactive, nextTick, onMounted, watch } = Vue;
 
 const STORAGE_KEY = 'gadb_iran_v1';
+const TURN_KEY = 'gadb_global_turn';
 
 const DEFAULT_ND = () => ({
     population: 16331228,
@@ -1183,7 +1184,8 @@ const DEFAULT_ND = () => ({
         agencies: [
             { name: 'SAVAK Intelligence Bureau', type: 'Intelligence', funded: true, prestige: 3, standingBonus: 2, effects: 'SAVAK gains +1 to all domestic missions and assignments.', programme: null },
             { name: 'National Iranian Oil Company', type: 'State Enterprise', funded: true, prestige: 4, standingBonus: 3, effects: 'Increases Oil production capacity. Khuzestan oil extraction ongoing.', programme: { name: 'Khuzestan Expansion', progress: 50 } }
-        ]
+        ],
+        effects: []
     },
     modifiers: [
         {
@@ -1270,7 +1272,7 @@ const DEFAULT_ND = () => ({
 createApp({
     setup() {
         const tab = ref('gov');
-        const turn = ref(parseInt(localStorage.getItem('gadb_turn_iran') || '1'));
+        const turn = ref(parseInt(localStorage.getItem(TURN_KEY) || '1'));
         const isAdmin = ref(sessionStorage.getItem('isAdmin') === 'true');
         const showAddMod = ref(false);
         const saveStatus = ref('none');
@@ -1291,7 +1293,7 @@ createApp({
         const saveToStorage = () => {
             try {
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(nd));
-                localStorage.setItem('gadb_turn_iran', String(turn.value));
+                localStorage.setItem(TURN_KEY, String(turn.value));
                 saveStatus.value = 'saved';
             } catch(e) { console.warn('Save failed:', e); }
         };
@@ -1299,7 +1301,7 @@ createApp({
         const resetToDefault = () => {
             if (!confirm('Reset all Iran data to factory defaults? This cannot be undone.')) return;
             localStorage.removeItem(STORAGE_KEY);
-            localStorage.removeItem('gadb_turn_iran');
+            localStorage.removeItem(TURN_KEY);
             const fresh = DEFAULT_ND();
             Object.assign(nd, fresh);
             turn.value = 1;
@@ -1314,7 +1316,7 @@ createApp({
         }, { deep: true });
 
         watch(turn, () => {
-            if (isAdmin.value) localStorage.setItem('gadb_turn_iran', String(turn.value));
+            if (isAdmin.value) localStorage.setItem(TURN_KEY, String(turn.value));
         });
 
         const newMod = reactive({
