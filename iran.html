@@ -1,0 +1,1357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Republic of Iran — Nation File</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-base: #0a0b0e;
+            --bg-panel: #16181d;
+            --bg-panel-hover: #1e2128;
+            --gold: #cba153;
+            --gold-dim: #8a6d35;
+            --text-main: #d1d5db;
+            --text-muted: #6b7280;
+            --accent-red: #8b2626;
+            --accent-green: #2d6a4f;
+        }
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+            background-image:
+                radial-gradient(circle at 50% 0%, #1a1c23 0%, transparent 70%),
+                url('data:image/svg+xml,%3Csvg width="20" height="20" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"%3E%3Cg fill="%231f2229" fill-opacity="0.4" fill-rule="evenodd"%3E%3Ccircle cx="3" cy="3" r="3"/%3E%3Ccircle cx="13" cy="13" r="3"/%3E%3C/g%3E%3C/svg%3E');
+        }
+        h1, h2, h3, h4, .font-serif { font-family: 'Playfair Display', serif; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-base); }
+        ::-webkit-scrollbar-thumb { background: var(--gold-dim); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--gold); }
+        .text-gold { color: var(--gold); }
+        .bg-gold { background-color: var(--gold); color: #000; }
+        .panel { background-color: var(--bg-panel); border: 1px solid #2a2d35; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.5); }
+        .tab-btn { border-left: 2px solid transparent; transition: all 0.2s; }
+        .tab-btn.active { border-left: 2px solid var(--gold); background-color: var(--bg-panel-hover); color: var(--gold); }
+        .scanlines {
+            position: fixed; top:0; left:0; width:100%; height:100%;
+            background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.08) 50%, rgba(0,0,0,0.08));
+            background-size: 100% 4px; pointer-events: none; z-index: 50;
+        }
+        input.admin-input {
+            background: transparent; border: none;
+            border-bottom: 1px dashed var(--gold-dim);
+            color: var(--gold); width: 100%; font-family: monospace;
+            text-align: right; outline: none; transition: all 0.2s;
+        }
+        input.admin-input:focus { border-bottom: 1px solid var(--gold); background: rgba(203,161,83,0.1); }
+        input.admin-input:disabled { border-bottom: none; color: var(--text-main); -webkit-appearance: none; }
+        .progress-bar { height: 4px; background: #1e2128; border-radius: 2px; overflow: hidden; }
+        .progress-fill { height: 100%; border-radius: 2px; transition: width 0.5s ease; }
+        .modifier-card { border-left: 3px solid; }
+        .modifier-card.gov { border-color: #8b5cf6; }
+        .modifier-card.mil { border-color: #ef4444; }
+        .modifier-card.eco { border-color: #10b981; }
+        .modifier-card.fpo { border-color: #3b82f6; }
+        .stat-badge { font-size: 0.65rem; padding: 1px 6px; border-radius: 2px; font-family: monospace; }
+        .stat-pos { background: rgba(45,106,79,0.4); color: #4ade80; }
+        .stat-neg { background: rgba(139,38,38,0.4); color: #f87171; }
+        .stat-neu { background: rgba(30,33,40,0.8); color: #9ca3af; }
+    </style>
+</head>
+<body>
+<div id="app" class="min-h-screen flex flex-col h-screen overflow-hidden relative">
+    <div class="scanlines"></div>
+
+    <!-- TOP BAR -->
+    <header class="bg-[#0f1115] border-b-2 flex flex-wrap justify-between items-center p-3 px-6 shadow-md z-20 flex-shrink-0" style="border-color:var(--gold)">
+        <div class="flex items-center space-x-4">
+            <a href="index.html" class="text-gray-400 hover:text-gold mr-2 transition-colors" title="Return to Database">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <div class="w-8 h-8 border border-gold flex items-center justify-center">
+                <!-- Stylized Iran flag colors -->
+                <div class="w-5 h-4 flex flex-col overflow-hidden">
+                    <div class="flex-1" style="background:#2d9e4e"></div>
+                    <div class="flex-1 bg-white"></div>
+                    <div class="flex-1" style="background:#da0000"></div>
+                </div>
+            </div>
+            <div>
+                <h1 class="font-serif text-2xl text-white">Republic of Iran</h1>
+                <p class="text-xs text-gray-500 uppercase tracking-widest">Party State Autocracy | Eastern Bloc | Turn {{ turn }}</p>
+            </div>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-5 text-sm">
+            <!-- Resources strip -->
+            <div class="flex items-center gap-5">
+                <div class="flex flex-col items-center">
+                    <span class="text-xs text-gray-500 uppercase">Population</span>
+                    <span class="font-mono text-white text-xs">{{ formatNum(nd.population) }}</span>
+                </div>
+                <div class="h-8 w-px bg-gray-700"></div>
+                <div class="flex flex-col items-center cursor-help" title="Action Points: Base 15 + Modifiers">
+                    <span class="text-xs text-gray-500">AP</span>
+                    <span class="font-mono text-gold text-lg font-bold">{{ totalAP }}</span>
+                </div>
+                <div class="flex flex-col items-center cursor-help" title="Political Power: gain 11/turn">
+                    <span class="text-xs text-gray-500">PP</span>
+                    <span class="font-mono text-purple-400 text-lg">{{ nd.politicalPower }}</span>
+                </div>
+                <div class="flex flex-col items-center cursor-help" title="Resource Improvement Points">
+                    <span class="text-xs text-gray-500">RIP</span>
+                    <span class="font-mono text-blue-400 text-lg">{{ nd.rip.base }}</span>
+                </div>
+                <div class="flex flex-col items-center">
+                    <span class="text-xs text-gray-500">Money</span>
+                    <span :class="nd.money >= 0 ? 'text-green-400' : 'text-red-400'" class="font-mono">${{ formatNum(nd.money) }}</span>
+                </div>
+                <div class="flex flex-col items-center">
+                    <span class="text-xs text-gray-500">Net Income</span>
+                    <span :class="netIncome >= 0 ? 'text-green-400' : 'text-red-400'" class="font-mono">${{ formatNum(netIncome) }}</span>
+                </div>
+            </div>
+            <button v-if="isAdmin" @click="processTurn" class="ml-2 bg-gold text-black px-5 py-2 font-bold uppercase tracking-wider hover:bg-yellow-600 transition-colors shadow-[0_0_10px_rgba(203,161,83,0.3)] text-xs">
+                Process Turn <i class="fas fa-forward ml-1"></i>
+            </button>
+        </div>
+    </header>
+
+    <div class="flex flex-1 overflow-hidden">
+        <!-- SIDEBAR -->
+        <aside class="w-60 bg-[#12141a] border-r border-gray-800 flex flex-col py-4 z-10 overflow-y-auto flex-shrink-0">
+            <div class="px-5 mb-3">
+                <p class="text-xs text-gray-500 uppercase tracking-widest border-b border-gray-800 pb-2">Departments</p>
+            </div>
+            <nav class="flex-1 flex flex-col space-y-0.5">
+                <button @click="tab='gov'" :class="['tab-btn flex items-center px-5 py-2.5 text-left w-full text-sm hover:text-white', tab==='gov'?'active':'text-gray-400']">
+                    <i class="fas fa-landmark w-5 text-xs"></i> Government
+                </button>
+                <button @click="tab='eco'" :class="['tab-btn flex items-center px-5 py-2.5 text-left w-full text-sm hover:text-white', tab==='eco'?'active':'text-gray-400']">
+                    <i class="fas fa-chart-line w-5 text-xs"></i> Economy
+                </button>
+                <button @click="tab='mil'" :class="['tab-btn flex items-center px-5 py-2.5 text-left w-full text-sm hover:text-white', tab==='mil'?'active':'text-gray-400']">
+                    <i class="fas fa-shield-alt w-5 text-xs"></i> Military
+                </button>
+                <button @click="tab='nav'" :class="['tab-btn flex items-center px-5 py-2.5 text-left w-full text-sm hover:text-white', tab==='nav'?'active':'text-gray-400']">
+                    <i class="fas fa-anchor w-5 text-xs"></i> Navy
+                </button>
+                <button @click="tab='int'" :class="['tab-btn flex items-center px-5 py-2.5 text-left w-full text-sm hover:text-white', tab==='int'?'active':'text-gray-400']">
+                    <i class="fas fa-eye w-5 text-xs"></i> Intelligence
+                </button>
+                <button @click="tab='un'" :class="['tab-btn flex items-center px-5 py-2.5 text-left w-full text-sm hover:text-white', tab==='un'?'active':'text-gray-400']">
+                    <i class="fas fa-globe w-5 text-xs"></i> United Nations
+                </button>
+                <button @click="tab='mod'" :class="['tab-btn flex items-center px-5 py-2.5 text-left w-full text-sm hover:text-white', tab==='mod'?'active':'text-gray-400']">
+                    <i class="fas fa-scroll w-5 text-xs"></i> Modifiers
+                </button>
+            </nav>
+            <div class="px-5 mt-auto pt-4">
+                <div class="bg-[#1a1c23] p-3 border border-gray-800 text-xs space-y-1">
+                    <p class="text-gray-400">Session:</p>
+                    <p :class="isAdmin?'text-green-400':'text-yellow-500'">
+                        <i :class="isAdmin?'fas fa-unlock':'fas fa-lock'"></i>
+                        {{ isAdmin ? 'Admin Active' : 'Read-Only' }}
+                    </p>
+                    <p class="text-gray-500 mt-1">War Exhaustion: <span class="font-mono text-white">{{ nd.warExhaustion }}</span></p>
+                    <p class="text-gray-500">War Support: <span class="font-mono text-blue-400">{{ nd.warSupport }}%</span></p>
+                    <p class="text-gray-500">At War: <span :class="nd.atWar?'text-red-400':'text-green-400'">{{ nd.atWar ? 'YES' : 'No' }}</span></p>
+                </div>
+            </div>
+        </aside>
+
+        <!-- MAIN CONTENT -->
+        <main class="flex-1 overflow-y-auto p-8 bg-opacity-50">
+            <div class="max-w-6xl mx-auto">
+
+<!-- ==================== TAB: GOVERNMENT ==================== -->
+<div v-show="tab==='gov'" class="space-y-6">
+    <h2 class="text-3xl font-serif text-white border-b border-gray-800 pb-2">State Affairs</h2>
+
+    <!-- Leadership Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Leadership Card -->
+        <div class="panel p-6 col-span-1 lg:col-span-2 relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-gold opacity-5 rounded-bl-full pointer-events-none"></div>
+            <h3 class="text-gold uppercase text-xs tracking-widest mb-4">Executive Branch</h3>
+            <div class="flex items-start gap-6">
+                <div class="w-28 h-36 bg-[#0f1115] border border-gray-700 flex items-center justify-center flex-shrink-0">
+                    <i class="fas fa-user-tie text-4xl text-gray-600"></i>
+                </div>
+                <div class="flex-1">
+                    <h4 class="text-2xl font-serif text-white">Abdollah Entezam</h4>
+                    <p class="text-xs text-gray-400 mb-3">President — Head of State (De-Jure)</p>
+                    <div class="grid grid-cols-2 gap-x-6 gap-y-1 text-sm">
+                        <p><span class="text-gray-500 w-28 inline-block">De-Facto Leader:</span> <span class="text-gray-200">Abdolhossein Teymourtash</span></p>
+                        <p><span class="text-gray-500 w-28 inline-block">Party President:</span> <span class="text-gray-200">Age 69</span></p>
+                        <p><span class="text-gray-500 w-28 inline-block">Prime Minister:</span> <span class="text-gray-200">Hassan Taqizadeh</span></p>
+                        <p><span class="text-gray-500 w-28 inline-block">President Age:</span> <span class="text-gray-200">55</span></p>
+                        <p><span class="text-gray-500 w-28 inline-block">Ruling Party:</span> <span class="text-gold">Party for Progress</span></p>
+                        <p><span class="text-gray-500 w-28 inline-block">PM Age:</span> <span class="text-gray-200">72</span></p>
+                        <p><span class="text-gray-500 w-28 inline-block">Capital:</span> <span class="text-gray-200">Tehran</span></p>
+                        <p><span class="text-gray-500 w-28 inline-block">Bloc Alignment:</span> <span class="text-red-400">Eastern Bloc (Russia)</span></p>
+                        <p><span class="text-gray-500 w-28 inline-block">Ideology:</span> <span class="text-gray-200">Right-Wing Populism, Nationalism</span></p>
+                        <p><span class="text-gray-500 w-28 inline-block">Government:</span> <span class="text-gray-200">Party State Autocracy</span></p>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-4 p-3 bg-[#0a0b0e] border border-gray-800 text-xs text-gray-400 italic leading-relaxed">
+                "Evolving from the smaller Revival Party, the Party for Progress represents the culmination of a growing ultra-modernist and populist trend amongst Iranian Nationalists. A blend of the secularist modernization of Young Turk thought and radical ultranationalism, the party has embarked on economic modernization, land reforms, and a rapid Oil expansion in the reconquered Khuzestan."
+            </div>
+        </div>
+
+        <!-- National Info -->
+        <div class="space-y-4">
+            <div class="panel p-5">
+                <h3 class="text-gold uppercase text-xs tracking-widest mb-3">National Profile</h3>
+                <div class="space-y-1.5 text-xs">
+                    <p class="flex justify-between"><span class="text-gray-500">Currency</span><span class="text-gray-300">Iranian Rial</span></p>
+                    <p class="flex justify-between"><span class="text-gray-500">Official Language</span><span class="text-gray-300">Persian (Farsi)</span></p>
+                    <p class="flex justify-between"><span class="text-gray-500">Demonym</span><span class="text-gray-300">Iranian</span></p>
+                    <p class="flex justify-between"><span class="text-gray-500">National Anthem</span><span class="text-gray-300">"Ey Irân"</span></p>
+                    <p class="flex justify-between"><span class="text-gray-500">Motto</span><span class="text-gray-300">Malat, Azadi, Jamehori</span></p>
+                    <p class="flex justify-between"><span class="text-gray-500">Ethnic Groups</span><span class="text-gray-300">Persian, Azeri, Kurds, Arabs</span></p>
+                    <p class="flex justify-between border-t border-gray-800 pt-1.5 mt-1.5"><span class="text-gray-500">Major Cities</span><span class="text-gray-300 text-right">Mashhad, Isfahan, Karaj, Shiraz, Tabriz, Ahvaz</span></p>
+                    <p class="flex justify-between border-t border-gray-800 pt-1.5 mt-1.5"><span class="text-gray-500">UN Member</span><span class="text-green-400">Yes</span></p>
+                    <p class="flex justify-between"><span class="text-gray-500">UN Security Council</span><span class="text-green-400">Yes</span></p>
+                </div>
+            </div>
+            <div class="panel p-5">
+                <h3 class="text-gold uppercase text-xs tracking-widest mb-3">National Sentiment</h3>
+                <div class="space-y-3">
+                    <div>
+                        <div class="flex justify-between text-xs mb-1">
+                            <span class="text-gray-400">War Support</span>
+                            <span class="font-mono text-blue-400"><input type="number" v-model="nd.warSupport" :disabled="!isAdmin" class="admin-input w-12 text-blue-400">%</span>
+                        </div>
+                        <div class="progress-bar"><div class="progress-fill bg-blue-500" :style="`width:${nd.warSupport}%`"></div></div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-xs mb-1">
+                            <span class="text-gray-400">War Exhaustion</span>
+                            <span class="font-mono text-red-400"><input type="number" v-model="nd.warExhaustion" :disabled="!isAdmin" class="admin-input w-12 text-red-400">%</span>
+                        </div>
+                        <div class="progress-bar"><div class="progress-fill bg-red-600" :style="`width:${nd.warExhaustion}%`"></div></div>
+                    </div>
+                    <div class="border-t border-gray-800 pt-2 text-xs space-y-1">
+                        <p class="flex justify-between"><span class="text-gray-500">PP Gain/Turn</span><span class="font-mono text-purple-400">+{{ nd.ppGainPerTurn }}</span></p>
+                        <p class="flex justify-between"><span class="text-gray-500">Current PP</span><span class="font-mono text-purple-400">{{ nd.politicalPower }}</span></p>
+                        <p class="flex justify-between"><span class="text-gray-500">PP Maximum</span><span class="font-mono text-gray-400">1000</span></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Legislature -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Lower House: Majles -->
+        <div class="panel p-5">
+            <h3 class="text-gold uppercase text-xs tracking-widest mb-3">Lower House — Majles</h3>
+            <div class="relative w-full" style="height:120px">
+                <canvas id="majlesChart"></canvas>
+                <div class="absolute bottom-0 left-0 w-full text-center">
+                    <span class="text-2xl font-mono text-white">180</span>
+                    <span class="text-xs text-gray-500 block -mt-1">Total Seats</span>
+                </div>
+            </div>
+            <div class="mt-3 space-y-1 text-xs">
+                <p class="flex justify-between"><span class="text-gold">Party for Progress</span><span class="font-mono">180 / 180</span></p>
+                <p class="flex justify-between"><span class="text-gray-500">Other Parties</span><span class="font-mono">0</span></p>
+                <p class="flex justify-between text-gray-500"><span>Majority needed</span><span class="font-mono">91</span></p>
+            </div>
+            <p class="text-xs text-green-400 mt-3 border-t border-gray-800 pt-2"><i class="fas fa-check"></i> Majles supports the Government — Rubberstamp Legislature</p>
+            <p class="text-xs text-gray-500 mt-1">Election Cycle: 4 Years · Last: 1946 · Next: Summer 1950</p>
+        </div>
+        <!-- Upper House: Senate -->
+        <div class="panel p-5">
+            <h3 class="text-gold uppercase text-xs tracking-widest mb-3">Upper House — Senate</h3>
+            <div class="relative w-full" style="height:120px">
+                <canvas id="senateChart"></canvas>
+                <div class="absolute bottom-0 left-0 w-full text-center">
+                    <span class="text-2xl font-mono text-white">78</span>
+                    <span class="text-xs text-gray-500 block -mt-1">Total Seats</span>
+                </div>
+            </div>
+            <div class="mt-3 space-y-1 text-xs">
+                <p class="flex justify-between"><span class="text-gold">Party for Progress</span><span class="font-mono">70 / 78</span></p>
+                <p class="flex justify-between"><span class="text-gray-500">Other Parties / Independents</span><span class="font-mono">8</span></p>
+                <p class="flex justify-between text-gray-500"><span>Majority needed</span><span class="font-mono">40</span></p>
+            </div>
+            <p class="text-xs text-green-400 mt-3 border-t border-gray-800 pt-2"><i class="fas fa-check"></i> Senate supports the Government — Rubberstamp Legislature</p>
+            <p class="text-xs text-gray-500 mt-1">Election Cycle: ½ every 4 Years · Last: 1946 · Next: Summer 1950</p>
+        </div>
+    </div>
+
+    <!-- Alliances -->
+    <div class="panel p-6">
+        <h3 class="text-gold uppercase text-xs tracking-widest mb-4">Military Alliances & International Memberships</h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+            <div class="bg-[#0a0b0e] p-3 border border-red-900">
+                <p class="text-red-400 font-semibold mb-1">Tashkent Pact</p>
+                <p class="text-gray-400">Conditional Defensive Alliance</p>
+                <p class="text-gray-500 mt-1">Members: Russia, Iran, Armenia, Mongolia, Afghanistan, East Turkestan</p>
+            </div>
+            <div class="bg-[#0a0b0e] p-3 border border-blue-900">
+                <p class="text-blue-400 font-semibold mb-1">Moscow Cooperation Organization</p>
+                <p class="text-gray-400">Development & Economic Bloc</p>
+                <p class="text-gray-500 mt-1">Includes: Eurasian Development Fund · Eurasian Economic Community</p>
+            </div>
+            <div class="bg-[#0a0b0e] p-3 border border-gray-700">
+                <p class="text-gray-300 font-semibold mb-1">United Nations</p>
+                <p class="text-gray-400">General Assembly · Security Council · Secretariat · ICJ · ECOSOC</p>
+                <p class="text-gray-500 mt-1">Standing: <span class="text-gold">{{ nd.un.standing }}/100</span></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ==================== TAB: ECONOMY ==================== -->
+<div v-show="tab==='eco'" class="space-y-6">
+    <div class="flex justify-between items-end border-b border-gray-800 pb-2">
+        <h2 class="text-3xl font-serif text-white">Economic Directorate</h2>
+        <div class="text-right text-xs text-gray-500">Industrialization Level:
+            <span class="text-gold font-serif text-lg ml-1">{{ nd.industrialization }} — Industrialized</span>
+        </div>
+    </div>
+
+    <!-- Financial Summary -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="panel p-4 text-center">
+            <p class="text-xs text-gray-500 uppercase mb-1">Current Money</p>
+            <p :class="nd.money>=0?'text-green-400':'text-red-400'" class="font-mono text-xl">${{ formatNum(nd.money) }}</p>
+        </div>
+        <div class="panel p-4 text-center">
+            <p class="text-xs text-gray-500 uppercase mb-1">Net Income</p>
+            <p :class="netIncome>=0?'text-green-400':'text-red-400'" class="font-mono text-xl">${{ formatNum(netIncome) }}</p>
+        </div>
+        <div class="panel p-4 text-center">
+            <p class="text-xs text-gray-500 uppercase mb-1">Money Next Turn</p>
+            <p :class="moneyNextTurn>=0?'text-green-400':'text-red-400'" class="font-mono text-xl">${{ formatNum(moneyNextTurn) }}</p>
+        </div>
+        <div class="panel p-4 text-center">
+            <p class="text-xs text-gray-500 uppercase mb-1">Inflation Rate</p>
+            <p class="font-mono text-xl text-yellow-400">{{ nd.inflationRate }}%</p>
+        </div>
+    </div>
+
+    <!-- IC + RIP + Income/Spending -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- IC Allocation -->
+        <div class="panel p-5">
+            <h3 class="text-gold uppercase text-xs tracking-widest mb-3">Industrial Capacity Allocation</h3>
+            <div class="grid grid-cols-3 gap-3 text-center">
+                <div class="bg-[#0a0b0e] p-3 border border-gray-800">
+                    <p class="text-xs text-gray-500 mb-1">Total IC</p>
+                    <p class="text-2xl font-mono text-white"><input type="number" v-model="nd.ic.total" :disabled="!isAdmin" class="admin-input text-center text-2xl w-16"></p>
+                </div>
+                <div class="bg-[#0a0b0e] p-3 border border-gray-800">
+                    <p class="text-xs text-gray-500 mb-1">Assigned IC</p>
+                    <p class="text-2xl font-mono text-yellow-500"><input type="number" v-model="nd.ic.assigned" :disabled="!isAdmin" class="admin-input text-center text-2xl w-16 text-yellow-500"></p>
+                </div>
+                <div class="bg-[#0a0b0e] p-3 border border-gray-800">
+                    <p class="text-xs text-gray-500 mb-1">Unassigned</p>
+                    <p :class="unassignedIC<0?'text-red-500':'text-green-400'" class="text-2xl font-mono">{{ unassignedIC }}</p>
+                </div>
+            </div>
+            <div class="mt-3 text-xs space-y-1 border-t border-gray-800 pt-3">
+                <p class="flex justify-between"><span class="text-gray-500">Industrialization Level</span><span class="text-gold">5 (Industrialized)</span></p>
+                <p class="flex justify-between"><span class="text-gray-500">Resource Inputs/Turn</span><span class="text-gray-300">Rubber 82 · Oil 137 · IM 103</span></p>
+            </div>
+        </div>
+
+        <!-- RIP + PP -->
+        <div class="panel p-5">
+            <h3 class="text-gold uppercase text-xs tracking-widest mb-3">Resource Improvement Points & Political Power</h3>
+            <div class="grid grid-cols-2 gap-4 text-sm">
+                <div class="space-y-2">
+                    <p class="text-gray-400 text-xs uppercase tracking-wider mb-2">RIP</p>
+                    <p class="flex justify-between"><span class="text-gray-500">Base RIP</span><span class="font-mono text-blue-400">{{ nd.rip.base }}</span></p>
+                    <p class="flex justify-between"><span class="text-gray-500">Traded RIP</span><span class="font-mono text-gray-400">{{ nd.rip.traded }}</span></p>
+                    <p class="flex justify-between border-t border-gray-800 pt-1"><span class="text-white font-semibold">RIP to Spend</span><span class="font-mono text-blue-400 font-bold">{{ nd.rip.base + nd.rip.traded }}</span></p>
+                </div>
+                <div class="space-y-2">
+                    <p class="text-gray-400 text-xs uppercase tracking-wider mb-2">Political Power</p>
+                    <p class="flex justify-between"><span class="text-gray-500">Gain/Turn</span><span class="font-mono text-purple-400">+{{ nd.ppGainPerTurn }}</span></p>
+                    <p class="flex justify-between"><span class="text-gray-500">Current</span><span class="font-mono text-purple-400"><input type="number" v-model="nd.politicalPower" :disabled="!isAdmin" class="admin-input w-12 text-purple-400"></span></p>
+                    <p class="flex justify-between"><span class="text-gray-500">Maximum</span><span class="font-mono text-gray-400">1000</span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Income / Spending Breakdown -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="panel p-0 overflow-hidden">
+            <div class="p-4 bg-[#12141a] border-b border-gray-800"><h3 class="text-gold uppercase text-xs tracking-widest">Income Sources</h3></div>
+            <table class="w-full text-sm">
+                <tbody class="divide-y divide-gray-800 font-mono">
+                    <tr class="hover:bg-[#1a1c23]"><td class="p-3 text-gray-400">Taxation</td><td class="p-3 text-right text-green-400"><input type="number" v-model="nd.income.taxation" :disabled="!isAdmin" class="admin-input w-20 text-green-400"></td></tr>
+                    <tr class="hover:bg-[#1a1c23]"><td class="p-3 text-gray-400">Trade</td><td class="p-3 text-right text-green-400"><input type="number" v-model="nd.income.trade" :disabled="!isAdmin" class="admin-input w-20 text-green-400"></td></tr>
+                    <tr class="hover:bg-[#1a1c23]"><td class="p-3 text-gray-400">Foreign Aid</td><td class="p-3 text-right text-green-400"><input type="number" v-model="nd.income.aid" :disabled="!isAdmin" class="admin-input w-20 text-green-400"></td></tr>
+                    <tr class="hover:bg-[#1a1c23]"><td class="p-3 text-gray-400">From Modifiers</td><td class="p-3 text-right text-green-400">{{ nd.income.modifiers }}</td></tr>
+                    <tr class="bg-[#12141a] font-bold"><td class="p-3 text-white">Total Income</td><td class="p-3 text-right text-green-400">${{ formatNum(totalIncome) }}</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="panel p-0 overflow-hidden">
+            <div class="p-4 bg-[#12141a] border-b border-gray-800"><h3 class="text-gold uppercase text-xs tracking-widest">Expenditure</h3></div>
+            <table class="w-full text-sm">
+                <tbody class="divide-y divide-gray-800 font-mono">
+                    <tr class="hover:bg-[#1a1c23]"><td class="p-3 text-gray-400">Resource Maintenance</td><td class="p-3 text-right text-red-400">{{ formatNum(nd.spending.resourceMaint) }}</td></tr>
+                    <tr class="hover:bg-[#1a1c23]"><td class="p-3 text-gray-400">Military Upkeep</td><td class="p-3 text-right text-red-400">{{ formatNum(nd.spending.milUpkeep) }}</td></tr>
+                    <tr class="hover:bg-[#1a1c23]"><td class="p-3 text-gray-400">Military Economy Costs</td><td class="p-3 text-right text-red-400">{{ formatNum(nd.spending.milEconomy) }}</td></tr>
+                    <tr class="hover:bg-[#1a1c23]"><td class="p-3 text-gray-400">Government Ministries</td><td class="p-3 text-right text-red-400">{{ formatNum(nd.spending.govMinistries) }}</td></tr>
+                    <tr class="hover:bg-[#1a1c23]"><td class="p-3 text-gray-400">Industrial Upkeep (Income)</td><td class="p-3 text-right text-green-400">-{{ formatNum(Math.abs(nd.spending.industrialUpkeep)) }}</td></tr>
+                    <tr class="hover:bg-[#1a1c23]"><td class="p-3 text-gray-400">Intelligence</td><td class="p-3 text-right text-red-400">{{ nd.spending.intel }}</td></tr>
+                    <tr class="bg-[#12141a] font-bold"><td class="p-3 text-white">Total Spending</td><td class="p-3 text-right text-red-400">${{ formatNum(totalSpending) }}</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Government Departments -->
+    <div class="panel p-0 overflow-hidden">
+        <div class="p-4 bg-[#12141a] border-b border-gray-800"><h3 class="text-gold uppercase text-xs tracking-widest">Government Departments</h3></div>
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-0 divide-x divide-gray-800">
+            <div v-for="dept in nd.departments" :key="dept.name" class="p-4 hover:bg-[#1a1c23] border-b border-gray-800">
+                <div class="flex justify-between items-center mb-2">
+                    <h4 class="text-xs text-gray-300 font-semibold">{{ dept.name }}</h4>
+                    <span class="stat-badge stat-neu">Lv {{ dept.level }}/{{ dept.max }}</span>
+                </div>
+                <div class="progress-bar mb-2"><div class="progress-fill bg-gold" :style="`width:${(dept.level/dept.max)*100}%`"></div></div>
+                <p class="text-xs text-gray-500 leading-relaxed">{{ dept.effects }}</p>
+                <p class="text-xs text-gray-600 mt-1">Inputs: {{ dept.inputs }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Taxation Details -->
+    <div class="panel p-5">
+        <h3 class="text-gold uppercase text-xs tracking-widest mb-3">Taxation System</h3>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs font-mono">
+            <div><p class="text-gray-500 mb-1">Base Taxation</p><p class="text-white">9,506</p></div>
+            <div><p class="text-gray-500 mb-1">Base Collection Eff.</p><p class="text-white">50.0%</p></div>
+            <div><p class="text-gray-500 mb-1">Taxation Eff. Modifier</p><p class="text-white">1.00</p></div>
+            <div><p class="text-gray-500 mb-1">Final Collection Eff.</p><p class="text-gold">53.0%</p></div>
+            <div><p class="text-gray-500 mb-1">PP Cost to Increase Base</p><p class="text-white">30 PP</p></div>
+            <div><p class="text-gray-500 mb-1">Improvement %</p><p class="text-white">2.0%</p></div>
+            <div><p class="text-gray-500 mb-1">Inflation Rate</p><p class="text-yellow-400">{{ nd.inflationRate }}%</p></div>
+            <div><p class="text-gray-500 mb-1">Inflation Growth/Turn</p><p class="text-yellow-400">+0.01%</p></div>
+        </div>
+    </div>
+
+    <!-- Research -->
+    <div class="panel p-5">
+        <h3 class="text-gold uppercase text-xs tracking-widest mb-3">Research & Development</h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div v-for="(slot, i) in nd.research.slots" :key="i" class="bg-[#0a0b0e] p-4 border border-gray-800">
+                <p class="text-xs text-gray-500 mb-1">Research Slot {{ i+1 }}</p>
+                <p class="font-semibold text-sm text-white mb-2">{{ slot.name }}</p>
+                <div v-if="slot.target > 0">
+                    <div class="flex justify-between text-xs text-gray-500 mb-1"><span>Progress</span><span>{{ slot.progress }}/{{ slot.target }}</span></div>
+                    <div class="progress-bar"><div class="progress-fill bg-blue-500" :style="`width:${(slot.progress/slot.target)*100}%`"></div></div>
+                    <p class="text-xs text-gray-500 mt-1">{{ nd.research.points }} RP/turn</p>
+                </div>
+                <p v-else class="text-xs text-gray-600 italic">Unassigned</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Resource Ledger -->
+    <div class="panel p-0 overflow-hidden">
+        <div class="p-4 border-b border-gray-800 bg-[#12141a]"><h3 class="text-gold uppercase text-xs tracking-widest">Resource Production Ledger</h3></div>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs whitespace-nowrap">
+                <thead class="bg-[#0a0b0e] text-gray-400 border-b border-gray-800">
+                    <tr>
+                        <th class="p-3 font-normal">Metric</th>
+                        <th class="p-3 font-normal text-right">Spec. Metals</th>
+                        <th class="p-3 font-normal text-right">Prec. Metals</th>
+                        <th class="p-3 font-normal text-right">Ind. Metals</th>
+                        <th class="p-3 font-normal text-right">Agri. Goods</th>
+                        <th class="p-3 font-normal text-right">Oil</th>
+                        <th class="p-3 font-normal text-right">Rubber</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-800 font-mono">
+                    <tr class="hover:bg-[#1a1c23]">
+                        <td class="p-3 text-gray-300">Total Production</td>
+                        <td class="p-3 text-right" v-for="r in resKeys" :key="'p-'+r"><input type="number" v-model.number="nd.resources[r].production" :disabled="!isAdmin" class="admin-input w-20"></td>
+                    </tr>
+                    <tr class="hover:bg-[#1a1c23]">
+                        <td class="p-3 text-gray-300">Trades</td>
+                        <td class="p-3 text-right" v-for="r in resKeys" :key="'t-'+r"><input type="number" v-model.number="nd.resources[r].trades" :disabled="!isAdmin" class="admin-input w-16"></td>
+                    </tr>
+                    <tr class="hover:bg-[#1a1c23]">
+                        <td class="p-3 text-gray-300">Foreign Aid</td>
+                        <td class="p-3 text-right" v-for="r in resKeys" :key="'fa-'+r"><input type="number" v-model.number="nd.resources[r].foreignAid" :disabled="!isAdmin" class="admin-input w-16"></td>
+                    </tr>
+                    <tr class="hover:bg-[#1a1c23]">
+                        <td class="p-3 text-gray-300">From Modifiers</td>
+                        <td class="p-3 text-right" v-for="r in resKeys" :key="'m-'+r"><input type="number" v-model.number="nd.resources[r].modifiers" :disabled="!isAdmin" class="admin-input w-16"></td>
+                    </tr>
+                    <tr class="hover:bg-[#1a1c23] text-red-400">
+                        <td class="p-3">Consumption</td>
+                        <td class="p-3 text-right" v-for="r in resKeys" :key="'c-'+r">-<input type="number" v-model.number="nd.resources[r].consumption" :disabled="!isAdmin" class="admin-input w-16 text-red-400"></td>
+                    </tr>
+                    <tr class="hover:bg-[#1a1c23] text-gray-400">
+                        <td class="p-3">Maintenance Cost</td>
+                        <td class="p-3 text-right font-mono" v-for="r in resKeys" :key="'mc-'+r">{{ formatNum(nd.resources[r].maintenance) }}</td>
+                    </tr>
+                    <tr class="bg-[#12141a] font-bold">
+                        <td class="p-3 text-white">Final Balance</td>
+                        <td v-for="r in resKeys" :key="'b-'+r" :class="['p-3 text-right font-mono', resBal(r)<0?'text-red-500':'text-green-400']">{{ resBal(r) }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Resource Chart -->
+    <div class="panel p-6">
+        <h3 class="text-gold uppercase text-xs tracking-widest mb-4">Production vs. Consumption</h3>
+        <div class="w-full h-64"><canvas id="resourceChart"></canvas></div>
+    </div>
+</div>
+
+<!-- ==================== TAB: MILITARY ==================== -->
+<div v-show="tab==='mil'" class="space-y-6">
+    <h2 class="text-3xl font-serif text-white border-b border-gray-800 pb-2">Ministry of Defense</h2>
+
+    <!-- Manpower Overview - 4 Branches -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div v-for="branch in nd.mil.branches" :key="branch.name" class="panel p-4">
+            <h4 class="text-gold uppercase text-xs tracking-widest mb-2">{{ branch.name }}</h4>
+            <div class="flex justify-between text-xs mb-1">
+                <span class="text-gray-500">Used / Cap</span>
+                <span class="font-mono text-white">{{ formatNum(branch.used) }} / {{ formatNum(branch.cap) }}</span>
+            </div>
+            <div class="progress-bar mb-1">
+                <div class="progress-fill" :class="branch.used/branch.cap > 0.9 ? 'bg-red-500' : branch.used/branch.cap > 0.7 ? 'bg-yellow-500' : 'bg-green-500'"
+                    :style="`width:${Math.min(100,(branch.used/branch.cap)*100)}%`"></div>
+            </div>
+            <div class="flex justify-between text-xs">
+                <span class="text-gray-500">{{ Math.round((branch.used/branch.cap)*100) }}% filled</span>
+                <span class="text-gray-400">{{ formatNum(branch.cap - branch.used) }} left</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recruitable + Professionalism -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="panel p-5">
+            <h3 class="text-gold uppercase text-xs tracking-widest mb-3">Recruitable Population</h3>
+            <p class="text-3xl font-mono text-white mb-1">{{ formatNum(totalRecruitable) }}</p>
+            <p class="text-xs text-gray-500 mb-3">{{ (nd.mil.recruitPercent*100).toFixed(1) }}% of {{ formatNum(nd.population) }}</p>
+            <div class="progress-bar mb-1"><div class="progress-fill bg-green-600" :style="`width:${(totalManpowerUsed/totalRecruitable)*100}%`"></div></div>
+            <div class="flex justify-between text-xs mt-1">
+                <span class="text-gray-500">Used: {{ formatNum(totalManpowerUsed) }}</span>
+                <span class="text-gray-500">{{ (totalManpowerUsed/totalRecruitable*100).toFixed(1) }}%</span>
+            </div>
+            <p class="text-xs text-gray-500 mt-2">Casualties: <span class="font-mono text-red-400"><input type="number" v-model="nd.mil.casualties" :disabled="!isAdmin" class="admin-input w-16 text-red-400"></span></p>
+        </div>
+        <div class="panel p-5">
+            <h3 class="text-gold uppercase text-xs tracking-widest mb-3">Military Professionalism</h3>
+            <p class="text-4xl font-mono text-white mb-1">Tier {{ nd.mil.profTier }}</p>
+            <p class="text-xs text-gray-500 mb-3">Progress to Tier {{ nd.mil.profTier + 1 }}: 0/100</p>
+            <div class="progress-bar"><div class="progress-fill bg-yellow-500" style="width:0%"></div></div>
+            <div class="mt-3 text-xs space-y-1 border-t border-gray-800 pt-3">
+                <p class="flex justify-between"><span class="text-gray-500">Morale Modifier</span><span class="font-mono text-white">+0</span></p>
+                <p class="flex justify-between"><span class="text-gray-500">Unit Stat Buff</span><span class="font-mono text-white">+0</span></p>
+                <p class="flex justify-between"><span class="text-gray-500">Special Forces Cap</span><span class="font-mono text-white">18%</span></p>
+            </div>
+        </div>
+        <div class="panel p-5">
+            <h3 class="text-gold uppercase text-xs tracking-widest mb-3">Modernization Progress</h3>
+            <div class="space-y-4">
+                <div>
+                    <div class="flex justify-between text-xs mb-1"><span class="text-gray-400">Republican Guard Reform</span><span class="font-mono text-yellow-400">40/100</span></div>
+                    <div class="progress-bar"><div class="progress-fill bg-yellow-500" style="width:40%"></div></div>
+                    <p class="text-xs text-gray-600 mt-1">Army -10% effectiveness during reform. +10/turn.</p>
+                </div>
+                <div>
+                    <div class="flex justify-between text-xs mb-1"><span class="text-gray-400">Javidan Guard Training</span><span class="font-mono text-yellow-400">40/100</span></div>
+                    <div class="progress-bar"><div class="progress-fill bg-yellow-500" style="width:40%"></div></div>
+                    <p class="text-xs text-gray-600 mt-1">+10/turn. Mountaineers replaced on completion.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Army Deployments -->
+    <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+        <div class="panel p-0">
+            <div class="p-4 border-b border-gray-800 bg-[#12141a]"><h3 class="text-gold uppercase text-xs tracking-widest">Army — Total Strength</h3></div>
+            <table class="w-full text-left text-sm">
+                <thead class="bg-[#0a0b0e] text-gray-400 border-b border-gray-800">
+                    <tr><th class="p-3 font-normal">Unit Type</th><th class="p-3 font-normal text-right">Deployed</th><th class="p-3 font-normal text-right">Manpower</th></tr>
+                </thead>
+                <tbody class="divide-y divide-gray-800 font-mono">
+                    <tr v-for="u in nd.mil.army" :key="u.name" class="hover:bg-[#1a1c23]">
+                        <td class="p-3 text-gray-300">{{ u.name }}</td>
+                        <td class="p-3 text-right"><input type="number" v-model.number="u.count" :disabled="!isAdmin" class="admin-input w-24"></td>
+                        <td class="p-3 text-right text-gray-400">{{ formatNum(u.count * u.mp) }}</td>
+                    </tr>
+                </tbody>
+                <tfoot class="bg-[#0a0b0e] text-gold font-bold">
+                    <tr><td class="p-3">Army Total</td><td class="p-3 text-right">{{ formatNum(armyTotal) }}</td><td class="p-3 text-right text-gray-400">{{ formatNum(armyMPTotal) }}</td></tr>
+                </tfoot>
+            </table>
+        </div>
+        <div class="panel p-0">
+            <div class="p-4 border-b border-gray-800 bg-[#12141a]"><h3 class="text-gold uppercase text-xs tracking-widest">Army — Theatre Deployments</h3></div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-xs whitespace-nowrap">
+                    <thead class="bg-[#0a0b0e] text-gray-400 border-b border-gray-800">
+                        <tr><th class="p-3 font-normal">Theatre</th><th class="p-3 text-right font-normal">Infantry</th><th class="p-3 text-right font-normal">Mech.</th><th class="p-3 text-right font-normal">Pre-MBT</th><th class="p-3 text-right font-normal">AA</th><th class="p-3 text-right font-normal">AT</th><th class="p-3 text-right font-normal">Art.</th><th class="p-3 text-right font-normal">Mtn.</th><th class="p-3 text-right font-normal">Rckt.Art</th></tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-800 font-mono">
+                        <tr v-for="t in nd.mil.theatres" :key="t.name" class="hover:bg-[#1a1c23]">
+                            <td class="p-3 text-gray-300">{{ t.name }}</td>
+                            <td class="p-3 text-right">{{ t.inf > 0 ? formatNum(t.inf) : '—' }}</td>
+                            <td class="p-3 text-right">{{ t.mech > 0 ? t.mech : '—' }}</td>
+                            <td class="p-3 text-right">{{ t.prembt > 0 ? t.prembt : '—' }}</td>
+                            <td class="p-3 text-right">{{ t.aa > 0 ? t.aa : '—' }}</td>
+                            <td class="p-3 text-right">{{ t.at > 0 ? t.at : '—' }}</td>
+                            <td class="p-3 text-right">{{ t.art > 0 ? t.art : '—' }}</td>
+                            <td class="p-3 text-right">{{ t.mtn > 0 ? formatNum(t.mtn) : '—' }}</td>
+                            <td class="p-3 text-right">{{ t.rktart > 0 ? t.rktart : '—' }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Air Force -->
+    <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+        <div class="panel p-0">
+            <div class="p-4 border-b border-gray-800 bg-[#12141a]"><h3 class="text-gold uppercase text-xs tracking-widest">Air Force — Total Strength</h3></div>
+            <table class="w-full text-sm">
+                <thead class="bg-[#0a0b0e] text-gray-400 border-b border-gray-800">
+                    <tr><th class="p-3 font-normal">Unit Type</th><th class="p-3 text-right font-normal">Count</th><th class="p-3 text-right font-normal">Oil/Turn</th></tr>
+                </thead>
+                <tbody class="divide-y divide-gray-800 font-mono">
+                    <tr v-for="u in nd.mil.air" :key="u.name" class="hover:bg-[#1a1c23]">
+                        <td class="p-3 text-gray-300">{{ u.name }}</td>
+                        <td class="p-3 text-right"><input type="number" v-model.number="u.count" :disabled="!isAdmin" class="admin-input w-20"></td>
+                        <td class="p-3 text-right text-yellow-600">{{ u.oil > 0 ? formatNum(u.count * u.oil) : '—' }}</td>
+                    </tr>
+                </tbody>
+                <tfoot class="bg-[#0a0b0e] text-gold font-bold">
+                    <tr><td class="p-3">Air Total</td><td class="p-3 text-right">{{ airTotal }}</td><td class="p-3 text-right text-yellow-600">{{ formatNum(nd.mil.air.reduce((s,u)=>s+u.count*u.oil,0)) }}</td></tr>
+                </tfoot>
+            </table>
+        </div>
+        <div class="panel p-0">
+            <div class="p-4 border-b border-gray-800 bg-[#12141a]"><h3 class="text-gold uppercase text-xs tracking-widest">Air Force — Theatre Deployments</h3></div>
+            <table class="w-full text-sm">
+                <thead class="bg-[#0a0b0e] text-gray-400 border-b border-gray-800">
+                    <tr><th class="p-3 font-normal">Theatre</th><th class="p-3 text-right font-normal">Fighters</th><th class="p-3 text-right font-normal">CAS</th></tr>
+                </thead>
+                <tbody class="divide-y divide-gray-800 font-mono">
+                    <tr v-for="t in nd.mil.airTheatres" :key="t.name" class="hover:bg-[#1a1c23]">
+                        <td class="p-3 text-gray-300">{{ t.name }}</td>
+                        <td class="p-3 text-right">{{ t.fighters }}</td>
+                        <td class="p-3 text-right">{{ t.cas }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- ==================== TAB: NAVY ==================== -->
+<div v-show="tab==='nav'" class="space-y-6">
+    <h2 class="text-3xl font-serif text-white border-b border-gray-800 pb-2">Naval Command</h2>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="panel p-6">
+            <h3 class="text-gold uppercase text-xs tracking-widest mb-4">Dockyard Allocation</h3>
+            <div class="space-y-3">
+                <div class="flex justify-between items-center border-b border-gray-800 pb-2">
+                    <span class="text-gray-400 text-sm">Base Dockyards</span>
+                    <span class="font-mono text-white text-xl"><input type="number" v-model="nd.navy.baseDocks" :disabled="!isAdmin" class="admin-input w-14"></span>
+                </div>
+                <div class="flex justify-between items-center border-b border-gray-800 pb-2">
+                    <span class="text-gray-400 text-sm">Leased Dockyards</span>
+                    <span class="font-mono text-gray-400 text-xl">{{ nd.navy.leasedDocks }}</span>
+                </div>
+                <div class="flex justify-between items-center border-b border-gray-800 pb-2">
+                    <span class="text-gray-400 text-sm">Used Dockyards</span>
+                    <span class="font-mono text-yellow-500 text-xl"><input type="number" v-model="nd.navy.usedDocks" :disabled="!isAdmin" class="admin-input w-14 text-yellow-500"></span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-400 text-sm">Unused Dockyards</span>
+                    <span :class="unusedDocks<0?'text-red-500':'text-green-400'" class="font-mono text-xl">{{ unusedDocks }}</span>
+                </div>
+            </div>
+            <div class="mt-4 pt-4 border-t border-gray-800 text-xs space-y-1 text-gray-400">
+                <p>Resource Inputs (per dockyard):</p>
+                <p>SM: 30 · PM: 20 · IM: 40 · AG: 20 · Rubber: 1</p>
+            </div>
+        </div>
+
+        <div class="panel p-0 col-span-1 md:col-span-2">
+            <div class="p-4 border-b border-gray-800 bg-[#12141a]"><h3 class="text-gold uppercase text-xs tracking-widest">Active Fleet Composition</h3></div>
+            <div class="p-6 grid grid-cols-2 lg:grid-cols-3 gap-4 text-center">
+                <div v-for="v in nd.navy.fleet" :key="v.type" class="bg-[#0a0b0e] p-4 border border-gray-800">
+                    <i class="fas fa-ship text-xl text-gray-600 mb-2"></i>
+                    <p class="text-xs text-gray-500 uppercase mb-1">{{ v.type }}</p>
+                    <p class="text-2xl font-mono text-white"><input type="number" v-model.number="v.count" :disabled="!isAdmin" class="admin-input text-center"></p>
+                    <p class="text-xs text-gray-600 mt-1">Manpower: {{ formatNum(v.count * v.mp) }}</p>
+                </div>
+            </div>
+            <div class="bg-[#0a0b0e] p-4 border-t border-gray-800 flex justify-between font-bold text-gold">
+                <span>Total Naval Count:</span><span>{{ navalTotal }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Naval Theatre Deployments -->
+    <div class="panel p-0 overflow-hidden">
+        <div class="p-4 border-b border-gray-800 bg-[#12141a]"><h3 class="text-gold uppercase text-xs tracking-widest">Theatre Deployments</h3></div>
+        <table class="w-full text-sm">
+            <thead class="bg-[#0a0b0e] text-gray-400 border-b border-gray-800">
+                <tr><th class="p-3 font-normal">Theatre</th><th class="p-3 text-right font-normal">S.Battleships</th><th class="p-3 text-right font-normal">Battleships</th><th class="p-3 text-right font-normal">Fl.Carriers</th><th class="p-3 text-right font-normal">Lt.Carriers</th><th class="p-3 text-right font-normal">Cruisers</th><th class="p-3 text-right font-normal">Screens</th><th class="p-3 text-right font-normal">Submarines</th></tr>
+            </thead>
+            <tbody class="divide-y divide-gray-800 font-mono">
+                <tr v-for="t in nd.navy.theatres" :key="t.name" class="hover:bg-[#1a1c23]">
+                    <td class="p-3 text-gray-300">{{ t.name }}</td>
+                    <td class="p-3 text-right">{{ t.superbattle || '—' }}</td>
+                    <td class="p-3 text-right">{{ t.battle || '—' }}</td>
+                    <td class="p-3 text-right">{{ t.carrier || '—' }}</td>
+                    <td class="p-3 text-right">{{ t.ltcarrier || '—' }}</td>
+                    <td class="p-3 text-right">{{ t.cruiser || '—' }}</td>
+                    <td class="p-3 text-right">{{ t.screens || '—' }}</td>
+                    <td class="p-3 text-right">{{ t.subs || '—' }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Manpower -->
+    <div class="panel p-5">
+        <h3 class="text-gold uppercase text-xs tracking-widest mb-3">Naval Manpower</h3>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs font-mono text-center">
+            <div><p class="text-gray-500 mb-1">Cap</p><p class="text-white text-lg">{{ formatNum(89822) }}</p></div>
+            <div><p class="text-gray-500 mb-1">Used</p><p class="text-yellow-500 text-lg">{{ formatNum(nd.navy.fleet.reduce((s,v)=>s+v.count*v.mp,0)) }}</p></div>
+            <div><p class="text-gray-500 mb-1">Left</p><p class="text-green-400 text-lg">{{ formatNum(89822 - nd.navy.fleet.reduce((s,v)=>s+v.count*v.mp,0)) }}</p></div>
+            <div><p class="text-gray-500 mb-1">% Filled</p><p class="text-gold text-lg">{{ Math.round(nd.navy.fleet.reduce((s,v)=>s+v.count*v.mp,0)/89822*100) }}%</p></div>
+        </div>
+    </div>
+</div>
+
+<!-- ==================== TAB: INTELLIGENCE ==================== -->
+<div v-show="tab==='int'" class="space-y-6">
+    <h2 class="text-3xl font-serif text-white border-b border-gray-800 pb-2">State Security & Intelligence</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Agent Capacity -->
+        <div class="panel p-6">
+            <h3 class="text-gold uppercase text-xs tracking-widest mb-4">Intelligence Bureau (SAVAK)</h3>
+            <p class="text-xs text-gray-400 italic mb-4">"The eyes of the state are everywhere." — SAVAK gains +1 to all domestic missions and assignments.</p>
+            <div class="grid grid-cols-2 gap-4 text-sm">
+                <div class="space-y-2">
+                    <p class="flex justify-between border-b border-gray-800 pb-1"><span class="text-gray-500">Initial Agent Cap.</span><span class="font-mono text-white">{{ nd.intel.initialCap }}</span></p>
+                    <p class="flex justify-between border-b border-gray-800 pb-1"><span class="text-gray-500">Purchased Cap.</span><span class="font-mono text-white">{{ nd.intel.purchasedCap }}</span></p>
+                    <p class="flex justify-between border-b border-gray-800 pb-1"><span class="text-gray-500">Total Capacity</span><span class="font-mono text-gold">{{ nd.intel.initialCap + nd.intel.purchasedCap }}</span></p>
+                    <p class="flex justify-between"><span class="text-gray-500">Agents Active</span><span class="font-mono text-white"><input type="number" v-model="nd.intel.agentsActive" :disabled="!isAdmin" class="admin-input w-12"></span></p>
+                </div>
+                <div class="space-y-2">
+                    <p class="flex justify-between border-b border-gray-800 pb-1"><span class="text-gray-500">AP Upkeep</span><span class="font-mono text-red-400">{{ nd.intel.agentsActive }}</span></p>
+                    <p class="flex justify-between border-b border-gray-800 pb-1"><span class="text-gray-500">Money Upkeep</span><span class="font-mono text-red-400">0</span></p>
+                    <p class="flex justify-between border-b border-gray-800 pb-1"><span class="text-gray-500">In Training</span><span class="font-mono text-white">0</span></p>
+                    <p class="flex justify-between"><span class="text-gray-500">Available Slots</span><span class="font-mono text-green-400">{{ nd.intel.initialCap + nd.intel.purchasedCap - nd.intel.agentsActive }}</span></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Unrest & Agitation -->
+        <div class="panel p-6">
+            <h3 class="text-gold uppercase text-xs tracking-widest mb-4">National Security Metrics</h3>
+            <div class="space-y-4">
+                <div>
+                    <div class="flex justify-between text-sm mb-1">
+                        <span class="text-gray-400">National Unrest</span>
+                        <span class="font-mono text-red-400"><input type="number" v-model="nd.intel.unrest" :disabled="!isAdmin" class="admin-input w-12 text-red-400"> (Level {{ nd.intel.unrestLevel }})</span>
+                    </div>
+                    <div class="progress-bar"><div class="progress-fill bg-red-600" :style="`width:${nd.intel.unrest*10}%`"></div></div>
+                    <p class="text-xs text-gray-600 mt-1">Agitations per turn at this level: 0</p>
+                </div>
+                <div>
+                    <div class="flex justify-between text-sm mb-1">
+                        <span class="text-gray-400">Agitation Level</span>
+                        <span class="font-mono text-yellow-400"><input type="number" v-model="nd.intel.agitation" :disabled="!isAdmin" class="admin-input w-12 text-yellow-400"></span>
+                    </div>
+                    <div class="progress-bar"><div class="progress-fill bg-yellow-500" :style="`width:${nd.intel.agitation}%`"></div></div>
+                    <p class="text-xs text-gray-600 mt-1">Agitation Penalty: None</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active Agents Table -->
+    <div class="panel p-0 overflow-hidden">
+        <div class="p-4 border-b border-gray-800 bg-[#12141a] flex justify-between items-center">
+            <h3 class="text-gold uppercase text-xs tracking-widest">Active Agent Roster</h3>
+            <span class="text-xs text-gray-500">{{ nd.intel.agentsActive }} / {{ nd.intel.initialCap + nd.intel.purchasedCap }} slots used</span>
+        </div>
+        <table class="w-full text-sm">
+            <thead class="bg-[#0a0b0e] text-gray-400 border-b border-gray-800">
+                <tr><th class="p-3 font-normal">Agent Name</th><th class="p-3 font-normal">Location</th><th class="p-3 font-normal">Assignment</th><th class="p-3 font-normal">Difficulty</th><th class="p-3 font-normal">Detection</th></tr>
+            </thead>
+            <tbody class="divide-y divide-gray-800">
+                <tr v-if="nd.intel.agentsActive === 0"><td colspan="5" class="p-6 text-center text-gray-600 italic">No agents currently deployed.</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Maladies -->
+    <div class="panel p-6">
+        <h3 class="text-gold uppercase text-xs tracking-widest mb-4">Active Maladies</h3>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+            <div v-for="m in nd.intel.maladies" :key="m.name" class="bg-[#0a0b0e] p-3 border border-gray-800">
+                <p class="text-gray-400 mb-1">{{ m.name }}</p>
+                <p :class="m.value !== 0 ? 'text-red-400' : 'text-gray-600'" class="font-mono text-lg">{{ m.value }}</p>
+                <p class="text-gray-600">{{ m.turns > 0 ? m.turns + ' turns' : '—' }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active Insurgencies -->
+    <div class="panel p-0">
+        <div class="p-4 border-b border-gray-800 bg-[#12141a]"><h3 class="text-gold uppercase text-xs tracking-widest">Active Insurgencies</h3></div>
+        <div class="p-4 text-xs text-gray-600 italic">No active insurgencies — Kurdish unrest monitored as a potential source.</div>
+    </div>
+</div>
+
+<!-- ==================== TAB: UNITED NATIONS ==================== -->
+<div v-show="tab==='un'" class="space-y-6">
+    <h2 class="text-3xl font-serif text-white border-b border-gray-800 pb-2">United Nations Delegation</h2>
+
+    <!-- Standing + Ambassador -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="panel p-6 md:col-span-2 flex items-start gap-6">
+            <div class="w-20 h-20 bg-blue-900 rounded-full flex items-center justify-center flex-shrink-0 border-4 border-blue-700">
+                <i class="fas fa-globe text-3xl text-white"></i>
+            </div>
+            <div class="flex-1">
+                <h3 class="text-gold uppercase text-xs tracking-widest mb-1">Diplomatic Standing</h3>
+                <p class="text-4xl font-serif text-white mb-2">{{ nd.un.standing }} <span class="text-sm font-sans text-gray-500">/ 100</span></p>
+                <div class="progress-bar mb-2"><div class="progress-fill bg-blue-500" :style="`width:${nd.un.standing}%`"></div></div>
+                <div class="grid grid-cols-3 gap-3 text-xs mt-3">
+                    <div class="bg-[#0a0b0e] p-2 border border-gray-800">
+                        <p class="text-gray-500">Change/Turn</p>
+                        <p class="font-mono text-white">{{ nd.un.changePerTurn >= 0 ? '+' : '' }}{{ nd.un.changePerTurn }}</p>
+                    </div>
+                    <div class="bg-[#0a0b0e] p-2 border border-gray-800">
+                        <p class="text-gray-500">Membership Fee</p>
+                        <p class="font-mono text-green-400">${{ nd.un.membershipFee }}</p>
+                    </div>
+                    <div class="bg-[#0a0b0e] p-2 border border-gray-800">
+                        <p class="text-gray-500">Secretary General</p>
+                        <p class="text-white">{{ nd.un.secGen }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="panel p-6">
+            <h3 class="text-gold uppercase text-xs tracking-widest mb-3">Principal Organs</h3>
+            <div class="space-y-1.5 text-xs">
+                <p v-for="organ in nd.un.organs" :key="organ.name" class="flex justify-between">
+                    <span class="text-gray-400">{{ organ.name }}</span>
+                    <span :class="organ.member ? 'text-green-400' : 'text-gray-600'">{{ organ.member ? '✓ Member' : '✗ Non-Member' }}</span>
+                </p>
+            </div>
+            <div class="mt-3 pt-3 border-t border-gray-800 text-xs">
+                <p class="text-gray-500 mb-1">UN Stability State:</p>
+                <p class="text-yellow-400 font-semibold">Competitive Multilateralism (55)</p>
+                <p class="text-gray-600 mt-1">No additional AP/PP bonuses at current stability.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- UN Effects from Modifiers -->
+    <div class="panel p-5">
+        <h3 class="text-gold uppercase text-xs tracking-widest mb-3">Membership Effects on Iran</h3>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs font-mono">
+            <div v-for="e in nd.un.effects" :key="e.label" class="bg-[#0a0b0e] p-3 border border-gray-800">
+                <p class="text-gray-500 mb-1">{{ e.label }}</p>
+                <p :class="e.val > 0 ? 'text-green-400' : e.val < 0 ? 'text-red-400' : 'text-gray-600'">{{ e.val >= 0 ? '+' : '' }}{{ e.val }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ECOSOC Agencies -->
+    <div class="panel p-0 overflow-hidden">
+        <div class="p-4 border-b border-gray-800 bg-[#12141a]"><h3 class="text-gold uppercase text-xs tracking-widest">ECOSOC Specialized Agencies</h3></div>
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-0 divide-x divide-y divide-gray-800">
+            <div v-for="agency in nd.un.agencies" :key="agency.name" class="p-4 hover:bg-[#1a1c23]">
+                <div class="flex justify-between items-center mb-1">
+                    <h4 class="text-xs font-semibold text-white">{{ agency.name }}</h4>
+                    <span :class="agency.funded ? 'stat-pos' : 'stat-neg'" class="stat-badge">{{ agency.funded ? 'Funded' : 'Unfunded' }}</span>
+                </div>
+                <p class="text-xs text-gray-500 mb-1">{{ agency.type }} · Prestige: {{ agency.prestige }} · Standing Bonus: +{{ agency.standingBonus }}</p>
+                <p class="text-xs text-gray-600 leading-relaxed">{{ agency.effects }}</p>
+                <div v-if="agency.programme" class="mt-2 bg-[#0a0b0e] p-2 border border-gray-800 text-xs">
+                    <p class="text-gray-400 mb-1">Active Programme: {{ agency.programme.name }}</p>
+                    <div class="flex justify-between text-xs mb-1"><span class="text-gray-500">Progress</span><span class="font-mono text-blue-400">{{ agency.programme.progress }}/100</span></div>
+                    <div class="progress-bar"><div class="progress-fill bg-blue-500" :style="`width:${agency.programme.progress}%`"></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ==================== TAB: MODIFIERS ==================== -->
+<div v-show="tab==='mod'" class="space-y-6">
+    <h2 class="text-3xl font-serif text-white border-b border-gray-800 pb-2">Active Modifiers</h2>
+    <div v-for="cat in nd.modifiers" :key="cat.category" class="space-y-3">
+        <h3 class="text-gray-400 uppercase text-xs tracking-widest flex items-center gap-2">
+            <i :class="cat.icon"></i> {{ cat.category }}
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div v-for="mod in cat.mods" :key="mod.name"
+                :class="['modifier-card panel p-5', mod.type]">
+                <div class="flex justify-between items-start mb-2">
+                    <h4 class="font-serif text-white text-base">{{ mod.name }}</h4>
+                    <span :class="mod.sentiment === 'pos' ? 'stat-pos' : mod.sentiment === 'neg' ? 'stat-neg' : 'stat-neu'" class="stat-badge">{{ mod.sentiment === 'pos' ? 'Beneficial' : mod.sentiment === 'neg' ? 'Detrimental' : 'Neutral' }}</span>
+                </div>
+                <p class="text-xs text-gray-500 leading-relaxed mb-3">{{ mod.desc }}</p>
+                <!-- Progress Bar if applicable -->
+                <div v-if="mod.progress !== undefined" class="mb-3">
+                    <div class="flex justify-between text-xs mb-1">
+                        <span class="text-gray-400">Progress</span>
+                        <span class="font-mono text-gold">{{ mod.progress }}/100</span>
+                    </div>
+                    <div class="progress-bar"><div class="progress-fill bg-gold" :style="`width:${mod.progress}%`"></div></div>
+                    <p class="text-xs text-gray-600 mt-1">{{ mod.progressNote }}</p>
+                </div>
+                <!-- Effects list -->
+                <div class="space-y-1">
+                    <div v-for="e in mod.effects" :key="e.label" class="flex justify-between text-xs">
+                        <span class="text-gray-400">{{ e.label }}</span>
+                        <span :class="e.positive ? 'text-green-400' : 'text-red-400'" class="font-mono">{{ e.value }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+            </div>
+        </main>
+    </div>
+</div>
+
+<script>
+const { createApp, ref, computed, reactive, nextTick, onMounted } = Vue;
+createApp({
+    setup() {
+        const tab = ref('gov');
+        const turn = ref(1);
+        const isAdmin = ref(sessionStorage.getItem('isAdmin') === 'true');
+        let resChart = null, majlesChart = null, senateChart = null;
+
+        const nd = reactive({
+            population: 16331228,
+            baseAP: 15,
+            apModifiers: 1, // PfP +1, Vast Oil +1, Kurdistan -1 = net +1
+            politicalPower: 10,
+            ppGainPerTurn: 11,
+            money: 74580,
+            inflationRate: 0.0,
+            rip: { base: 53, traded: 0 },
+            warSupport: 50,
+            warExhaustion: 0,
+            atWar: false,
+            industrialization: 5,
+
+            income: { taxation: 5039, trade: 0, aid: 0, modifiers: 0 },
+            spending: {
+                resourceMaint: 100639,
+                milUpkeep: 3837,
+                milEconomy: 11040,
+                govMinistries: 3758,
+                industrialUpkeep: -10206,
+                intel: 0
+            },
+
+            ic: { total: 122, assigned: 63 },
+            resources: {
+                SM:     { production: 13531, trades: 0, foreignAid: 0, modifiers: 0, consumption: 765,  maintenance: 65626 },
+                PM:     { production: 951,   trades: 0, foreignAid: 0, modifiers: 0, consumption: 604,  maintenance: 4613  },
+                IM:     { production: 1000,  trades: 0, foreignAid: 0, modifiers: 0, consumption: 1093, maintenance: 4850  },
+                AG:     { production: 3000,  trades: 0, foreignAid: 0, modifiers: 0, consumption: 776,  maintenance: 14550 },
+                Oil:    { production: 2261,  trades: 0, foreignAid: 0, modifiers: 0, consumption: 913,  maintenance: 10966 },
+                Rubber: { production: 7,     trades: 0, foreignAid: 0, modifiers: 0, consumption: 206,  maintenance: 34    }
+            },
+
+            departments: [
+                { name: 'Transportation & Labor', level: 1, max: 4, effects: '+3 PP · +6.53 RIP', inputs: 'Max 10 IC · 98 Rubber · 262 IM · 131 Oil' },
+                { name: 'Education',             level: 1, max: 4, effects: '+2 Research Points · +3.27 RIP', inputs: 'Max 10 IC · 1307 Money · 245 AG' },
+                { name: 'Civil Service',          level: 1, max: 4, effects: '+3 PP · +0.03 Tax Efficiency', inputs: 'Max 10 IC · 1144 Money · 164 AG' },
+                { name: 'Defense',               level: 1, max: 4, effects: '+0.5% Recruitable Pop · +0.03 Professionalism', inputs: 'Max 10 IC · 164 AG · 229 IM · 164 Oil' },
+                { name: 'Consumer Affairs',       level: 1, max: 4, effects: '+0.2 Base Taxation · +9.80 RIP', inputs: 'Max 10 IC · 327 SM · 196 IM' },
+                { name: 'Media Relations',        level: 1, max: 4, effects: '+0.002 War Support/Turn · +4 Electioneering', inputs: 'Max 10 IC · 1307 Money · 196 PM' },
+                { name: 'R&D Industries',         level: 1, max: 4, effects: '+12 Research Points/turn', inputs: '3 IC · 164 SM · 327 PM' },
+                { name: 'Healthcare (inactive)',  level: 0, max: 4, effects: 'Not yet funded.', inputs: '—' }
+            ],
+
+            research: {
+                points: 12,
+                slots: [
+                    { name: 'SM Improvement I', progress: 1, target: 100 },
+                    { name: 'Unassigned', progress: 0, target: 0 },
+                    { name: 'Unassigned', progress: 0, target: 0 }
+                ]
+            },
+
+            mil: {
+                recruitPercent: 0.025,
+                casualties: 0,
+                profTier: 4,
+                branches: [
+                    { name: 'Army', cap: 285797, used: 228750 },
+                    { name: 'Air Force', cap: 8166, used: 2250 },
+                    { name: 'Navy', cap: 89822, used: 66200 },
+                    { name: 'Spec. Forces', cap: 24497, used: 20000 }
+                ],
+                army: [
+                    { name: 'Infantry',        count: 200000, mp: 1 },
+                    { name: 'Irregulars',      count: 0,      mp: 1 },
+                    { name: 'Mechanized',      count: 50,     mp: 1 },
+                    { name: 'Anti-Air Squad',  count: 1500,   mp: 5 },
+                    { name: 'Anti-Tank Squad', count: 1500,   mp: 6 },
+                    { name: 'Artillery Squad', count: 1500,   mp: 6 },
+                    { name: 'MBT',             count: 0,      mp: 0 },
+                    { name: 'Pre-MBT',         count: 500,    mp: 4 },
+                    { name: 'Paratroopers',    count: 0,      mp: 1 },
+                    { name: 'Marines',         count: 0,      mp: 1 },
+                    { name: 'Mountaineers',    count: 20000,  mp: 1 },
+                    { name: 'Rocket Artillery',count: 200,    mp: 6 }
+                ],
+                theatres: [
+                    { name: 'Kurdish Border',  inf: 20000, mech: 0,  prembt: 0,  aa: 0,   at: 0,   art: 0,   mtn: 2000, rktart: 0 },
+                    { name: 'Syrian Border',   inf: 30000, mech: 50, prembt: 50, aa: 100, at: 100, art: 100, mtn: 0,    rktart: 0 },
+                    { name: 'Afghan Border',   inf: 15000, mech: 0,  prembt: 0,  aa: 0,   at: 0,   art: 0,   mtn: 1000, rktart: 0 },
+                    { name: 'Indian Border',   inf: 20000, mech: 0,  prembt: 0,  aa: 0,   at: 0,   art: 0,   mtn: 1000, rktart: 0 },
+                    { name: 'Southern Coast',  inf: 15000, mech: 0,  prembt: 0,  aa: 0,   at: 0,   art: 0,   mtn: 1000, rktart: 0 }
+                ],
+                air: [
+                    { name: 'Fighter',              count: 750, mp: 1, oil: 0.25 },
+                    { name: 'Close Air Support',    count: 750, mp: 2, oil: 0.25 },
+                    { name: 'Carrier Aircraft',     count: 0,   mp: 0, oil: 0 },
+                    { name: 'Transport Plane',      count: 0,   mp: 0, oil: 0 },
+                    { name: 'Naval Bomber',         count: 0,   mp: 0, oil: 0 },
+                    { name: 'Heavy Bomber',         count: 0,   mp: 0, oil: 0 }
+                ],
+                airTheatres: [
+                    { name: 'Western Iran', fighters: 400, cas: 200 },
+                    { name: 'Eastern Iran', fighters: 100, cas: 50  }
+                ]
+            },
+
+            navy: {
+                baseDocks: 10,
+                leasedDocks: 0,
+                usedDocks: 0,
+                fleet: [
+                    { type: 'Battleships',   count: 1,  mp: 3200 },
+                    { type: 'Fleet Carriers',count: 0,  mp: 0 },
+                    { type: 'Lt. Carriers',  count: 0,  mp: 0 },
+                    { type: 'Cruisers',      count: 15, mp: 2000 },
+                    { type: 'Screens',       count: 50, mp: 500  },
+                    { type: 'Submarines',    count: 40, mp: 200  }
+                ],
+                theatres: [
+                    { name: 'Bandar Abbas', superbattle: 0, battle: 0, carrier: 0, ltcarrier: 0, cruiser: 7, screens: 20, subs: 30 }
+                ]
+            },
+
+            intel: {
+                initialCap: 2, purchasedCap: 0, agentsActive: 0,
+                unrest: 3, unrestLevel: 1, agitation: 0,
+                maladies: [
+                    { name: 'Negative Unrest Roll',    value: 0, turns: 0 },
+                    { name: 'Negative AP',             value: 0, turns: 0 },
+                    { name: 'Negative RIP',            value: 0, turns: 0 },
+                    { name: 'Negative Tax Efficiency', value: 0, turns: 0 },
+                    { name: 'Negative Income',         value: 0, turns: 0 },
+                    { name: 'Negative Political Power',value: 0, turns: 0 },
+                    { name: 'Neg. War Exhaustion',     value: 0, turns: 0 },
+                    { name: 'Neg. War Support',        value: 0, turns: 0 }
+                ]
+            },
+
+            un: {
+                standing: 18, changePerTurn: 0, membershipFee: 0, contributions: 0,
+                secGen: 'Nasrollah Entezam',
+                organs: [
+                    { name: 'General Assembly', member: true },
+                    { name: 'Security Council', member: true },
+                    { name: 'Secretariat', member: true },
+                    { name: 'Trusteeship Council', member: true },
+                    { name: 'International Court of Justice', member: true },
+                    { name: 'ECOSOC', member: true }
+                ],
+                effects: [
+                    { label: 'Bonus AP', val: 0 },
+                    { label: 'Bonus PP', val: 2 },
+                    { label: 'Mission Participants', val: 0 },
+                    { label: 'Trust Territories', val: 0 }
+                ],
+                agencies: [
+                    { name: 'FAO', type: 'Major Specialized Agency', funded: true, prestige: 2, standingBonus: 1, effects: 'Reduces impact of famines. Once/year choose one effect for 10 PP.', programme: { name: 'Land and Cadastre Survey', progress: 0 } },
+                    { name: 'ILO', type: 'Major Specialized Agency', funded: true, prestige: 3, standingBonus: 2, effects: 'Labour standardization, manpower planning. Factions: Socialist 0.4, Liberal 0.35, Corporatist 0.25.', programme: null },
+                    { name: 'WHO', type: 'Major Specialized Agency', funded: true, prestige: 3, standingBonus: 2, effects: 'Reduces impact of disease outbreaks. Active programmes can be funded 1 AP or 10 PP/turn.', programme: { name: 'Technical Assistance', progress: 85 } },
+                    { name: 'UNESCO', type: 'Major Specialized Agency', funded: true, prestige: 4, standingBonus: 2, effects: '+5 to rolls raising literacy or initializing educational reforms.', programme: { name: 'Arid Zone Programme', progress: 5 } },
+                    { name: 'UNHCR', type: 'Principal Agency', funded: true, prestige: 0, standingBonus: 0, effects: 'Recently established — a resolution outlining its purpose must be passed before assuming operation.', programme: null },
+                    { name: 'UPU', type: 'Minor Specialized Agency', funded: true, prestige: 1, standingBonus: 1, effects: 'PP cost to upgrade Taxation Base reduced by 10%. +5 to census and bureaucratic reform rolls.', programme: null }
+                ]
+            },
+
+            modifiers: [
+                {
+                    category: 'Government & Politics', icon: 'fas fa-landmark',
+                    mods: [
+                        {
+                            name: 'The Party for Progress', type: 'gov', sentiment: 'pos',
+                            desc: 'The only party in Iran. Centralized, one-party state. Old guard still holds great sway through Teymourtash as Party President, despite stepping back from the Presidency in 1948.',
+                            effects: [
+                                { label: 'Party Unity', value: '96 / 100', positive: true },
+                                { label: 'Unity Decay/Turn', value: '-2', positive: false },
+                                { label: 'Bonus AP', value: '+1', positive: true },
+                                { label: 'Bonus PP', value: '+5', positive: true },
+                                { label: 'Bonus Cohesion', value: '+5', positive: true }
+                            ]
+                        },
+                        {
+                            name: 'Failures in Kurdistan', type: 'gov', sentiment: 'neg',
+                            desc: 'Iran failed to end the Kurdish Republic. These failures left a rift in the party, weakening old leadership. The Kurdish population in Iran grows more vocal for autonomy.',
+                            progress: undefined,
+                            effects: [
+                                { label: 'Bonus Party Unity', value: '-2', positive: false },
+                                { label: 'Bonus AP', value: '-1', positive: false },
+                                { label: 'Gov Popularity', value: '-5', positive: false },
+                                { label: 'Unrest in Kurdistan', value: '10 (grows +2/turn)', positive: false }
+                            ]
+                        },
+                        {
+                            name: 'Islamic Traditionalism', type: 'gov', sentiment: 'neg',
+                            desc: 'The Islamic faith is a core part of the Iranian populace, fueling a movement for religious government. With defeats in Kurdistan and Iraq, this movement has grown. Passing laws against Islamic teaching spikes radicalism.',
+                            effects: [
+                                { label: 'Current Radicalization', value: '8', positive: false },
+                                { label: 'Radicalization Growth/Turn', value: '+1', positive: false }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    category: 'Military & Espionage', icon: 'fas fa-shield-alt',
+                    mods: [
+                        {
+                            name: 'Republican National Guard', type: 'mil', sentiment: 'pos',
+                            desc: 'The main Iranian army, the Republican Guard defends Iran. At times of war, recruitment is greatly expanded with tribes and citizens willing to join. SAVAK provides domestic intelligence bonuses.',
+                            effects: [
+                                { label: 'Bonus Recruitable Population', value: '+0.5%', positive: true },
+                                { label: 'At War: Recruitable Pop Doubled', value: 'Yes', positive: true },
+                                { label: 'SAVAK: Spy Domestic Bonus', value: '+1 to all domestic missions', positive: true }
+                            ]
+                        },
+                        {
+                            name: 'Modernization of the Republican Guard', type: 'mil', sentiment: 'neu',
+                            desc: 'Ongoing military reform program. Army performance temporarily reduced while restructuring is underway. Upon completion, a new modifier replaces this one.',
+                            progress: 40,
+                            progressNote: 'Increases +10/turn. +10 more on successful AP action.',
+                            effects: [
+                                { label: 'Army Performance During Reform', value: '-10%', positive: false }
+                            ]
+                        },
+                        {
+                            name: 'The Strait of Hormuz', type: 'mil', sentiment: 'pos',
+                            desc: 'Iran holds a commanding position over the Strait of Hormuz, a vital trade route. Closing the straits will cause diplomatic incidents and cut off UAE oil exports. Iranian ships perform better within these waters.',
+                            effects: [
+                                { label: 'Iranian Ships (In Straits)', value: '+5% performance', positive: true },
+                                { label: 'Closing Straits: UAE Oil Cut Off', value: 'Diplomatic Incident', positive: false }
+                            ]
+                        },
+                        {
+                            name: 'Training the Javidan Guard', type: 'mil', sentiment: 'neu',
+                            desc: 'Special forces training program. Once completed, Iranian mountaineer units will be replaced by the elite Javidan Guard with superior stats.',
+                            progress: 40,
+                            progressNote: 'Increases +10/turn. +10 more on successful AP action.',
+                            effects: [
+                                { label: 'On Completion', value: 'Mountaineers replaced by Javidan Guard', positive: true }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    category: 'Economy', icon: 'fas fa-chart-line',
+                    mods: [
+                        {
+                            name: 'Vast Oil Wealth', type: 'eco', sentiment: 'pos',
+                            desc: 'Iran holds vast amounts of oil wealth, now fully under Iranian companies with Russian assistance. Oil wells have enabled continued expansion of the economy. However, reliance on oil exports has economic side effects (Dutch Disease).',
+                            effects: [
+                                { label: 'Bonus AP', value: '+1', positive: true },
+                                { label: 'Cannot Import Oil', value: 'Restriction', positive: false },
+                                { label: 'Oil Maintenance Cost', value: '-25%', positive: true },
+                                { label: 'Foreign Prospecting Bonus', value: 'All nations +10 in Iran', positive: false },
+                                { label: 'Dutch Disease: Other Resource Improvements', value: '-0.15', positive: false },
+                                { label: 'Dutch Disease: Taxation Efficiency', value: '-0.15', positive: false }
+                            ]
+                        },
+                        {
+                            name: 'Khuzestani Oil Boom', type: 'eco', sentiment: 'pos',
+                            desc: 'Following the reconquest of Khuzestan, an active oil expansion program is running. Oil upgrades are enhanced, but require continuous investment each turn.',
+                            effects: [
+                                { label: 'Oil Upgrade Bonus', value: '+25%', positive: true },
+                                { label: 'Minimum Oil Upgrades/Turn Required', value: 'Yes', positive: false },
+                                { label: 'Gain Bonus RIP toward Oil', value: 'Active', positive: true }
+                            ]
+                        },
+                        {
+                            name: 'Beginning of the Iranian Industrial Boom', type: 'eco', sentiment: 'pos',
+                            desc: 'Using oil wealth, Iran is rapidly industrializing across the nation. Factory work and refining facilities are expanding. Once further conditions are met, Iran will advance to Industrialization Level 6.',
+                            progress: 50,
+                            progressNote: 'Increases +5/turn. +15 more if Iran spends X LM/IM/Oil/Money.',
+                            effects: [
+                                { label: 'Industry Upgrade Cost', value: '-10%', positive: true },
+                                { label: 'LM Upgrades', value: 'Doubled', positive: true },
+                                { label: 'Bonus RIP', value: '+10', positive: true }
+                            ]
+                        },
+                        {
+                            name: 'The Shadow of the Zagros and Alborz', type: 'eco', sentiment: 'neg',
+                            desc: 'The Pindus-like mountain ranges of Iran have proved difficult for infrastructure and transportation, though they offer great defenses and vital resources.',
+                            effects: [
+                                { label: 'Light Metals & IM Upgrades', value: '+10%', positive: true },
+                                { label: 'Transport & Labour Industry Cost', value: '+50%', positive: false },
+                                { label: 'Transport & Labour: Cannot Expand Past Lv.2', value: 'Restriction', positive: false },
+                                { label: 'Taxation Efficiency Reduction', value: '-20%', positive: false }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    category: 'Foreign Policy', icon: 'fas fa-globe',
+                    mods: [
+                        {
+                            name: 'Member of the Tashkent Pact', type: 'fpo', sentiment: 'neu',
+                            desc: 'Conditional Defensive Alliance. If any member invokes this alliance, Iran is expected to aid them in their war. If Iran is attacked in Asia, Iran may invoke the alliance. Failing to aid members may incur penalties.',
+                            effects: [
+                                { label: 'Alliance Type', value: 'Conditional Defensive', positive: true },
+                                { label: 'Members', value: 'Russia, Iran, Armenia, Mongolia, Afghanistan, E.Turkestan', positive: true }
+                            ]
+                        },
+                        {
+                            name: 'Eurasian Development Fund (MCO)', type: 'fpo', sentiment: 'pos',
+                            desc: 'Each turn, Russia may choose one MCO nation (not the same twice in a row) to receive double RIP. This RIP cannot be traded. In Russia\'s stead, Poland may select if Russia is incapacitated.',
+                            effects: [
+                                { label: 'Potential Double RIP', value: 'Selected by Russia', positive: true },
+                                { label: 'RIP Tradeable', value: 'No', positive: false }
+                            ]
+                        },
+                        {
+                            name: 'Eurasian Economic Community (MCO)', type: 'fpo', sentiment: 'pos',
+                            desc: 'All MCO members receive a 5% bonus on refined resources. Once per turn, Russia can grant 5% military equipment production to one member (not same nation twice in a row).',
+                            effects: [
+                                { label: 'Refined Resource Bonus', value: '+5%', positive: true },
+                                { label: 'Potential Military Production Bonus', value: '+5% (Russia\'s choice)', positive: true }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        });
+
+        const resKeys = ['SM','PM','IM','AG','Oil','Rubber'];
+        const totalAP = computed(() => nd.baseAP + nd.apModifiers);
+        const unassignedIC = computed(() => nd.ic.total - nd.ic.assigned);
+        const totalRecruitable = computed(() => Math.floor(nd.population * nd.mil.recruitPercent));
+        const armyTotal = computed(() => nd.mil.army.reduce((s,u) => s + u.count, 0));
+        const armyMPTotal = computed(() => nd.mil.army.reduce((s,u) => s + u.count * u.mp, 0));
+        const airTotal = computed(() => nd.mil.air.reduce((s,u) => s + u.count, 0));
+        const navalTotal = computed(() => nd.navy.fleet.reduce((s,v) => s + v.count, 0));
+        const unusedDocks = computed(() => nd.navy.baseDocks + nd.navy.leasedDocks - nd.navy.usedDocks);
+        const totalManpowerUsed = computed(() => armyMPTotal.value + nd.mil.air.reduce((s,u)=>s+u.count*u.mp,0) + nd.navy.fleet.reduce((s,v)=>s+v.count*v.mp,0));
+        const totalIncome = computed(() => nd.income.taxation + nd.income.trade + nd.income.aid + nd.income.modifiers);
+        const totalSpending = computed(() => nd.spending.resourceMaint + nd.spending.milUpkeep + nd.spending.milEconomy + nd.spending.govMinistries + nd.spending.industrialUpkeep + nd.spending.intel);
+        const netIncome = computed(() => totalIncome.value - totalSpending.value);
+        const moneyNextTurn = computed(() => nd.money + netIncome.value);
+        const resBal = (r) => {
+            const re = nd.resources[r];
+            return (re.production + re.trades + re.foreignAid + re.modifiers) - re.consumption;
+        };
+        const formatNum = (n) => new Intl.NumberFormat('en-US').format(Math.round(n));
+
+        const initCharts = () => {
+            Chart.defaults.color = '#6b7280';
+            Chart.defaults.font.family = 'Inter';
+            const mkDoughnut = (id, seated, total) => {
+                const el = document.getElementById(id);
+                if (!el) return null;
+                return new Chart(el, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Party for Progress','Other'],
+                        datasets: [{ data: [seated, total - seated], backgroundColor: ['#cba153','#1e2128'], borderColor: '#0a0b0e', borderWidth: 2 }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, circumference: 180, rotation: -90, cutout: '60%', plugins: { legend: { display: false } } }
+                });
+            };
+            majlesChart = mkDoughnut('majlesChart', 180, 180);
+            senateChart = mkDoughnut('senateChart', 70, 78);
+
+            const rc = document.getElementById('resourceChart');
+            if (rc && !resChart) {
+                resChart = new Chart(rc, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Spec. Metals','Prec. Metals','Ind. Metals','Agri. Goods','Oil','Rubber'],
+                        datasets: [
+                            { label: 'Production', data: resKeys.map(k => nd.resources[k].production), backgroundColor: '#2d6a4f' },
+                            { label: 'Consumption', data: resKeys.map(k => nd.resources[k].consumption), backgroundColor: '#8b2626' }
+                        ]
+                    },
+                    options: {
+                        responsive: true, maintainAspectRatio: false,
+                        scales: { y: { grid: { color: '#1e2128' }, beginAtZero: true }, x: { grid: { display: false } } },
+                        plugins: { legend: { position: 'top' } }
+                    }
+                });
+            }
+        };
+
+        const processTurn = () => {
+            if (!isAdmin.value) return;
+            turn.value++;
+            nd.money += totalIncome.value - totalSpending.value;
+            nd.politicalPower = Math.min(1000, nd.politicalPower + nd.ppGainPerTurn);
+            nd.warExhaustion = Math.max(0, nd.warExhaustion);
+        };
+
+        onMounted(() => {
+            nextTick(() => initCharts());
+        });
+
+        return {
+            tab, turn, isAdmin, nd, resKeys,
+            totalAP, unassignedIC, totalRecruitable, armyTotal, armyMPTotal, airTotal,
+            navalTotal, unusedDocks, totalManpowerUsed, totalIncome, totalSpending,
+            netIncome, moneyNextTurn, resBal, formatNum, processTurn
+        };
+    }
+}).mount('#app');
+</script>
+</body>
+</html>
