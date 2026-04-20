@@ -295,7 +295,7 @@
                     <div class="bg-[#0a0b0e] border border-gray-800 p-4 flex items-center justify-between">
                         <span class="text-gray-400">Current Turn</span>
                         <div class="flex items-center gap-3">
-                            <button @click="if(turn>1)turn--" class="border border-gray-700 text-gray-400 px-3 py-1 text-xs hover:border-gold hover:text-gold transition-colors"><i class="fas fa-backward"></i></button>
+                            <button @click="decrementTurn" class="border border-gray-700 text-gray-400 px-3 py-1 text-xs hover:border-gold hover:text-gold transition-colors"><i class="fas fa-backward"></i></button>
                             <span class="font-mono text-white text-xl w-10 text-center">{{ turn }}</span>
                             <button @click="advanceTurn" class="border border-gold text-gold px-3 py-1 text-xs hover:bg-gold hover:text-black transition-colors"><i class="fas fa-forward"></i></button>
                         </div>
@@ -350,17 +350,12 @@
         </div>
     </div>
 
-</div>
-
-<style>
-    .modal-overlay { backdrop-filter: blur(2px); }
-</style>
-
     <!-- FOOTER -->
     <footer class="border-t border-[#2a2d35] py-4 px-8 text-xs text-gray-600 flex justify-between relative z-10">
         <span>Global Assembly — International Geo-Political Database</span>
         <span>Classification: RESTRICTED — Authorized Access Only</span>
     </footer>
+
 </div>
 
 <script>
@@ -461,6 +456,13 @@ createApp({
             localStorage.setItem(TURN_KEY, String(turn.value));
         };
 
+        const decrementTurn = () => {
+            if (turn.value > 1) {
+                turn.value--;
+                localStorage.setItem(TURN_KEY, String(turn.value));
+            }
+        };
+
         const openNation = (nation) => {
             if (nation.file) window.location.href = nation.file;
         };
@@ -469,7 +471,7 @@ createApp({
             turn, loginEmail, loginError, isAdmin, isSuperAdmin, activeFilter, filters,
             nations, filteredNations, allAdminEmails, extraAdminEmails,
             showAdminPanel, newAdminEmail,
-            attemptLogin, logout, addAdminEmail, removeAdminEmail, advanceTurn, openNation
+            attemptLogin, logout, addAdminEmail, removeAdminEmail, advanceTurn, decrementTurn, openNation
         };
     }
 }).mount('#app');
